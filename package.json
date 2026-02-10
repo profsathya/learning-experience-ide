@@ -1,0 +1,13 @@
+{
+  "name": "course-design-ide",
+  "version": "0.1.0",
+  "description": "Visual course design tool — generates interactive HTML from YAML schema",
+  "scripts": {
+    "generate": "node generator/generate.js",
+    "generate:cst395": "node generator/generate.js schemas/cst395.yaml",
+    "serve": "npx serve output"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  }
+}

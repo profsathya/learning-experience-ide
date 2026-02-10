@@ -1,0 +1,762 @@
+# =============================================================================
+# CST395: AI-Native Solution Engineering — Spring 2025
+# =============================================================================
+# Course Design Schema v1.0
+# Sprint 1 fully defined. Sprints 2-4 to be added.
+# =============================================================================
+
+course:
+  id: "CST395"
+  name: "AI-Native Solution Engineering"
+  units: 4
+  theme_color: "#14b8a6"
+  semester: "Spring 2025"
+
+  pedagogy:
+    primary_theory: "Self-Determination Theory"
+    core_tensions:
+      - "AI can do most tasks—what value do humans bring?"
+      - "Following instructions vs. owning outcomes"
+      - "Surface competence vs. genuine capability"
+
+  outcomes:
+    destinations:
+      - id: superagency
+        name: "Superagency"
+        description: "Ability to identify what needs to change and make it happen"
+        evidence_markers:
+          - "Can articulate a challenge they've actually changed (not just planned to)"
+          - "Distinguishes between what they control and what they influence"
+          - "Shows evidence of sustained behavior change, not just intention"
+
+      - id: human_value
+        name: "Human Value Proposition"
+        description: "Clear articulation of what they bring that AI cannot"
+        evidence_markers:
+          - "Can explain their unique value without defensiveness"
+          - "Understands AI capabilities accurately (not over/under-estimated)"
+          - "Demonstrates judgment, context-reading, stakeholder empathy"
+
+    capabilities:
+      - id: sdl
+        name: "Self-Directed Learning"
+        description: "Ability to identify gaps, plan learning, execute, evaluate"
+        progression:
+          sprint_1: "Can identify a personal gap and plan to address it"
+          sprint_2: "Can learn something to help someone else"
+          sprint_3: "Can learn unfamiliar domain under ambiguity"
+          sprint_4: "Can demonstrate learning process to external evaluator"
+
+      - id: integrative_solver
+        name: "Integrative Solver"
+        description: "Connects across knowledge layers to solve problems"
+        progression:
+          sprint_1: "Connects personal psychology to solution design"
+          sprint_2: "Connects stakeholder psychology to solution design"
+          sprint_3: "Connects business context to technical decisions"
+          sprint_4: "Navigates all layers fluidly in novel context"
+
+      - id: adaptive_builder
+        name: "Adaptive Builder"
+        description: "Builds solutions that respond to context and feedback"
+        progression:
+          sprint_1: "Iterates based on self-feedback"
+          sprint_2: "Iterates based on peer feedback"
+          sprint_3: "Iterates based on external stakeholder feedback"
+          sprint_4: "Anticipates need for iteration in design"
+
+  layers:
+    - id: philosophy
+      name: "Philosophy"
+      question: "Why does this matter at all? What's the deeper purpose?"
+      example: "Learning to solve your own problems builds agency—the foundation of a meaningful life."
+
+    - id: science
+      name: "Science"
+      question: "What does research tell us about how this works?"
+      example: "Self-Determination Theory shows intrinsic motivation requires autonomy, competence, relatedness."
+
+    - id: psychology
+      name: "Human Psychology"
+      question: "How do real humans actually think and behave?"
+      example: "People don't fail habits from lack of willpower—they fail from friction, unclear triggers, no feedback loops."
+
+    - id: engineering
+      name: "Engineering"
+      question: "How do we build something that actually works?"
+      example: "A habit tracker app needs: trigger mechanism, low-friction logging, visible progress, social accountability."
+
+    - id: business
+      name: "Business Value"
+      question: "Who pays for this and why? What's the value exchange?"
+      example: "Employers pay for problem-solvers who can work autonomously—not people who need constant direction."
+
+  grading:
+    sprint_weight: 0.20
+    defense_weight: 0.10
+    participation_weight: 0.10
+    within_sprint:
+      goals: 0.20
+      reflections: 0.40
+      demonstration: 0.40
+    policies:
+      late_penalty: "7% daily compounding"
+      grade_replacement: "Lowest sprint replaced by second-highest if improved"
+
+  peer_design:
+    total_conversations: 16
+    breadth_target: 9
+    depth_target: 4
+    sprint_skills:
+      - sprint: 1
+        skill: "Understanding"
+        framing: "Practice explaining your thinking clearly—a core interview skill"
+      - sprint: 2
+        skill: "Challenge"
+        framing: "Practice giving and receiving constructive pushback"
+      - sprint: 3
+        skill: "Thought Partner"
+        framing: "Practice collaborative problem-solving on ambiguous problems"
+      - sprint: 4
+        skill: "Accountability"
+        framing: "Practice holding each other to commitments"
+
+# =============================================================================
+# SPRINTS
+# =============================================================================
+
+sprints:
+  # ---------------------------------------------------------------------------
+  # SPRINT 1: FOUNDATION (SELF AS STAKEHOLDER)
+  # ---------------------------------------------------------------------------
+  - number: 1
+    name: "Foundation"
+    stakeholder: "Self"
+    theme: "You are your first stakeholder"
+
+    outcome_focus:
+      destinations: [superagency]
+      capabilities: [sdl, integrative_solver]
+
+    arc:
+      starting_point: "Students have a vague sense something should change but haven't made it happen"
+      ending_point: "Students have changed ONE thing and can explain WHY their approach worked"
+      key_insight: "The solution must fit the person, not the other way around—design requires self-knowledge"
+      common_failure: "Generic solution that ignores personal context; behavior change lasts 2 weeks then fades"
+
+    peer_skill: "Understanding"
+
+    demonstration:
+      format: "Handwritten quiz + live peer presentation"
+      duration: "50 minutes"
+      core_questions:
+        - "What specific self-knowledge did your 5 Whys reveal that you didn't have before?"
+        - "How did that self-knowledge change your solution design?"
+        - "What evidence do you have that your solution is actually working?"
+        - "What would you do differently if you were starting over?"
+
+    weeks:
+      # -------------------------------------------------------------------
+      # WEEK 1: CHOOSING YOUR CHALLENGE
+      # -------------------------------------------------------------------
+      - number: 1
+        course_week: 1
+        title: "Choosing Your Challenge"
+
+        hook:
+          question: "What have you been meaning to change but haven't?"
+          weak_answer: "Something vague like 'be healthier' or 'manage time better'"
+          strong_answer: "Something specific with observable evidence: 'I check my phone within 5 minutes of waking up every day'"
+
+        pathways:
+          - id: sdl
+            name: "Self-Directed Learning"
+            this_week: "Identify a real gap (not a performed one)"
+            builds_on: null
+            builds_toward: "Understanding WHY this gap exists"
+
+          - id: integrative_solver
+            name: "Integrative Solver"
+            this_week: "Connect personal values to challenge selection"
+            builds_on: null
+            builds_toward: "Connecting self-knowledge to solution design"
+
+          - id: mental_model
+            name: "Mental Model"
+            this_week: "Philosophy layer: Why does agency matter?"
+            builds_on: null
+            builds_toward: "Psychology layer: Why haven't I fixed this already?"
+
+        misconceptions:
+          - belief: "I should pick something impressive"
+            reality: "Authentic beats impressive. Pick something you actually care about."
+            intervention: "Show examples of 'impressive' projects that failed vs. 'small' ones that succeeded"
+
+          - belief: "I already know what my problem is"
+            reality: "Your first answer is almost never the real problem"
+            intervention: "Week 2's 5 Whys will reveal this—set up the expectation now"
+
+        class_session:
+          duration: 110
+          mode: "in-person"
+          segments:
+            - name: "Course framing"
+              duration: 20
+              type: "lecture"
+              purpose: "Set up the core tension: AI changes what humans must bring"
+              layer_focus: [philosophy, business]
+            - name: "Superagency concept"
+              duration: 15
+              type: "discussion"
+              purpose: "What does it mean to have agency over your own development?"
+              layer_focus: [philosophy]
+            - name: "Challenge brainstorm"
+              duration: 25
+              type: "activity"
+              purpose: "Generate candidate challenges, test against criteria"
+              layer_focus: [psychology]
+            - name: "Peer sharing"
+              duration: 20
+              type: "discussion"
+              purpose: "Practice articulating challenge to another person"
+              layer_focus: [psychology]
+            - name: "Selection criteria"
+              duration: 15
+              type: "lecture"
+              purpose: "What makes a good challenge for this course?"
+              layer_focus: [engineering]
+            - name: "Commitment"
+              duration: 15
+              type: "activity"
+              purpose: "Write down chosen challenge, share with partner"
+              layer_focus: [psychology]
+
+        assignments:
+          - id: sprint1-goals
+            name: "Sprint 1 Goal Setting"
+            type: "goal"
+            due_day: "Wednesday"
+            time_estimate: "15-20 minutes"
+            pathways: [sdl]
+            layer_focus: [philosophy, psychology]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Challenge is specific and observable"
+                  layer: psychology
+                  weak_example: "'Get better at time management'"
+                  strong_example: "'Stop checking phone in first hour after waking—currently happens within 5 min every day'"
+                - criterion: "Connects to something they actually care about"
+                  layer: philosophy
+                  weak_example: "'I should be more productive'"
+                  strong_example: "'Morning phone checking makes me feel reactive, not in control of my day'"
+                - criterion: "Has failed before (not first attempt)"
+                  layer: psychology
+                  weak_example: "New idea they've never tried"
+                  strong_example: "Something they've tried to fix 2-3 times but keeps reverting"
+              red_flags:
+                - "Challenge sounds like it came from a productivity blog"
+                - "No mention of previous failed attempts"
+                - "Vague language: 'better', 'more', 'improve'"
+              growth_indicators:
+                - "Specific behavioral description"
+                - "Emotional honesty about why this matters"
+                - "Acknowledgment of previous failures"
+            requires: []
+            canvas:
+              submission_type: "online_text_entry"
+              points: 20
+
+          - id: superagency-challenge
+            name: "Superagency Challenge Selection"
+            type: "activity"
+            due_day: "Friday"
+            time_estimate: "30-45 minutes"
+            pathways: [sdl, integrative_solver]
+            layer_focus: [philosophy, psychology]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Explains WHY this challenge matters to them personally"
+                  layer: philosophy
+                  weak_example: "'It would be good to exercise more'"
+                  strong_example: "'When I don't exercise, I'm more anxious and less patient with my family'"
+                - criterion: "Describes the current state with specificity"
+                  layer: psychology
+                  weak_example: "'I don't exercise enough'"
+                  strong_example: "'I've gone to the gym 3 times in the last 2 months, always on weekends, never lasting more than 2 weeks'"
+                - criterion: "Shows awareness that willpower alone won't work"
+                  layer: science
+                  weak_example: "'I just need to try harder'"
+                  strong_example: "'I've tried motivation and it always fades—something about my approach needs to change'"
+              red_flags:
+                - "Reads like a New Year's resolution"
+                - "No specificity about current behavior"
+                - "Willpower framing ('I need to be more disciplined')"
+              growth_indicators:
+                - "Specific numbers and timeframes"
+                - "Pattern recognition across previous attempts"
+                - "Questions about their own behavior, not just solutions"
+            requires: [sprint1-goals]
+            canvas:
+              submission_type: "online_text_entry"
+              points: 0
+
+      # -------------------------------------------------------------------
+      # WEEK 2: UNDERSTANDING THE ROOT CAUSE
+      # -------------------------------------------------------------------
+      - number: 2
+        course_week: 2
+        title: "Understanding Why This Has Been Hard"
+
+        hook:
+          question: "Why haven't you fixed this already—and what did 5 Whys reveal that you didn't know?"
+          weak_answer: "'I don't have time' → 'I'm busy' → 'I have a lot going on' (circular)"
+          strong_answer: "'I don't have time' → 'I prioritize other things' → 'Those feel more urgent' → 'Starting feels overwhelming' → 'I don't know the first step'"
+
+        pathways:
+          - id: sdl
+            name: "Self-Directed Learning"
+            this_week: "Use 5 Whys to discover actual root cause"
+            builds_on: "Identified a real challenge"
+            builds_toward: "Design solution that addresses root cause"
+
+          - id: integrative_solver
+            name: "Integrative Solver"
+            this_week: "Connect psychology research to personal pattern"
+            builds_on: "Connected values to challenge"
+            builds_toward: "Connect self-knowledge to design decisions"
+
+          - id: mental_model
+            name: "Mental Model"
+            this_week: "Psychology layer: What's actually driving my behavior?"
+            builds_on: "Philosophy layer established"
+            builds_toward: "Engineering layer: designing interventions"
+
+        misconceptions:
+          - belief: "I already know why I haven't fixed this"
+            reality: "Your first answer is a story you tell yourself. The real cause is usually uncomfortable."
+            intervention: "5 Whys forces you past comfortable answers"
+
+          - belief: "The problem is lack of willpower/discipline"
+            reality: "Willpower is a finite resource. Sustainable change comes from design, not discipline."
+            intervention: "Share research on habit formation; show willpower-based solutions always fail"
+
+        class_session:
+          duration: 110
+          mode: "in-person"
+          segments:
+            - name: "5 Whys introduction"
+              duration: 15
+              type: "lecture"
+              purpose: "Framework for root cause analysis"
+              layer_focus: [engineering, science]
+            - name: "Live demonstration"
+              duration: 20
+              type: "demo"
+              purpose: "Instructor models 5 Whys on real example"
+              layer_focus: [psychology]
+            - name: "Paired practice"
+              duration: 30
+              type: "activity"
+              purpose: "Students run 5 Whys with peer asking the questions"
+              layer_focus: [psychology]
+            - name: "Willpower vs. design"
+              duration: 20
+              type: "lecture"
+              purpose: "Why motivation-based approaches fail"
+              layer_focus: [science, psychology]
+            - name: "Reflection sharing"
+              duration: 25
+              type: "discussion"
+              purpose: "What did 5 Whys reveal that you didn't expect?"
+              layer_focus: [psychology]
+
+        assignments:
+          - id: five-whys-analysis
+            name: "5 Whys Analysis"
+            type: "activity"
+            due_day: "Wednesday"
+            time_estimate: "30-40 minutes"
+            pathways: [sdl, integrative_solver]
+            layer_focus: [psychology, science]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Each 'why' goes deeper, not sideways"
+                  layer: psychology
+                  weak_example: "Why #3 is about a different topic than Why #2"
+                  strong_example: "Each answer directly causes the previous one"
+                - criterion: "Final answer is uncomfortable or surprising"
+                  layer: psychology
+                  weak_example: "Lands on 'I'm busy' or 'I don't have time'"
+                  strong_example: "Lands on something about identity, fear, or unexamined assumption"
+                - criterion: "Shows genuine self-reflection, not performance"
+                  layer: philosophy
+                  weak_example: "Reads like what they think instructor wants to hear"
+                  strong_example: "Reveals something they might not tell a stranger"
+              red_flags:
+                - "All five answers could have been written without doing the exercise"
+                - "Circular reasoning (answer 5 is just answer 1 rephrased)"
+                - "Comfortable answers throughout"
+              growth_indicators:
+                - "Expresses surprise at where they landed"
+                - "Questions their own previous assumptions"
+                - "Makes connection to pattern across multiple life areas"
+            requires: [superagency-challenge]
+            canvas:
+              submission_type: "online_text_entry"
+              points: 0
+
+          - id: reflection-2
+            name: "Productive Reflection #2"
+            type: "reflection"
+            due_day: "Friday"
+            time_estimate: "25-35 minutes"
+            pathways: [sdl, mental_model]
+            layer_focus: [psychology, philosophy]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Connects 5 Whys insight to solution direction"
+                  layer: integrative_solver
+                  weak_example: "Describes 5 Whys result but doesn't say how it changes approach"
+                  strong_example: "Explains specifically how root cause revelation changes what they'll build"
+                - criterion: "Distinguishes between what they knew and what they learned"
+                  layer: sdl
+                  weak_example: "'I learned that I need to be more organized'"
+                  strong_example: "'I thought the problem was time, but it's actually fear of starting'"
+                - criterion: "Identifies specific design implications"
+                  layer: engineering
+                  weak_example: "Vague next steps"
+                  strong_example: "Concrete change to approach based on root cause"
+              red_flags:
+                - "Could have been written without doing 5 Whys"
+                - "No mention of surprise or changed understanding"
+                - "Solution direction unchanged from Week 1"
+              growth_indicators:
+                - "Explicit before/after in their thinking"
+                - "Specific design decision traced to specific insight"
+                - "Questions about themselves, not just the project"
+            requires: [five-whys-analysis]
+            canvas:
+              submission_type: "online_text_entry"
+              points: 40
+
+      # -------------------------------------------------------------------
+      # WEEK 3: SOLUTION DESIGN
+      # -------------------------------------------------------------------
+      - number: 3
+        course_week: 3
+        title: "Designing Your Solution"
+
+        hook:
+          question: "What specific self-knowledge did you use to make a design decision?"
+          weak_answer: "'I'm building a habit tracker because habit trackers help with habits'"
+          strong_answer: "'I learned I avoid starting because the first step is unclear, so my solution surfaces just one tiny action each morning'"
+
+        pathways:
+          - id: sdl
+            name: "Self-Directed Learning"
+            this_week: "Translate self-knowledge into design decisions"
+            builds_on: "Discovered root cause via 5 Whys"
+            builds_toward: "Evaluate whether solution actually works"
+
+          - id: integrative_solver
+            name: "Integrative Solver"
+            this_week: "Connect psychology to engineering"
+            builds_on: "Connected psychology to problem understanding"
+            builds_toward: "Defend design decisions in demo"
+
+          - id: adaptive_builder
+            name: "Adaptive Builder"
+            this_week: "Build first iteration with feedback mechanisms"
+            builds_on: null
+            builds_toward: "Iterate based on actual usage"
+
+          - id: mental_model
+            name: "Mental Model"
+            this_week: "Engineering layer: How do I build something that works for ME?"
+            builds_on: "Psychology layer established"
+            builds_toward: "Integration across all layers in demo"
+
+        misconceptions:
+          - belief: "A good solution is one that works for most people"
+            reality: "A good solution is one that works for THIS person. Generic solutions ignore context."
+            intervention: "Show examples of 'best practice' solutions that failed for specific people"
+
+          - belief: "I need to build something technically impressive"
+            reality: "Technical impressiveness is irrelevant. Does it solve YOUR problem?"
+            intervention: "Celebrate simple solutions that work; question complex ones that don't"
+
+        class_session:
+          duration: 110
+          mode: "in-person"
+          segments:
+            - name: "Solution architecture principles"
+              duration: 20
+              type: "lecture"
+              purpose: "How self-knowledge translates to design decisions"
+              layer_focus: [engineering, psychology]
+            - name: "Design decision analysis"
+              duration: 25
+              type: "activity"
+              purpose: "Map each design decision to specific self-knowledge"
+              layer_focus: [integrative_solver]
+            - name: "Symbiotic Thinking Dojo"
+              duration: 35
+              type: "activity"
+              purpose: "Use AI to develop solution WITH human judgment"
+              layer_focus: [engineering, psychology]
+            - name: "Peer design review"
+              duration: 30
+              type: "discussion"
+              purpose: "Challenge each other's design decisions"
+              layer_focus: [integrative_solver]
+
+        assignments:
+          - id: design-decision-analysis
+            name: "Design Decision Analysis"
+            type: "activity"
+            due_day: "Wednesday"
+            time_estimate: "30-40 minutes"
+            pathways: [integrative_solver]
+            layer_focus: [psychology, engineering]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Each design decision explicitly traced to self-knowledge"
+                  layer: integrative_solver
+                  weak_example: "'I'm using reminders because reminders help'"
+                  strong_example: "'I'm using morning reminders because I learned I make decisions about my day in the first 10 minutes after waking'"
+                - criterion: "Design differs from generic solution because of personal context"
+                  layer: psychology
+                  weak_example: "Solution could work for anyone"
+                  strong_example: "Solution explicitly wouldn't work for most people—designed for THIS person"
+                - criterion: "Anticipates failure modes specific to self"
+                  layer: psychology
+                  weak_example: "No mention of how it might fail"
+                  strong_example: "'I know I'll be tempted to skip on weekends, so I designed weekend mode differently'"
+              red_flags:
+                - "Generic solution with no personal customization"
+                - "No reference to 5 Whys insights"
+                - "Technical focus without psychology connection"
+              growth_indicators:
+                - "Explicit self→design mapping"
+                - "Design decisions that would seem weird without context"
+                - "Anticipation of personal failure patterns"
+            requires: [reflection-2]
+            canvas:
+              submission_type: "online_text_entry"
+              points: 0
+
+          - id: dojo-session
+            name: "Symbiotic Thinking Dojo Session"
+            type: "activity"
+            due_day: "Wednesday"
+            time_estimate: "45-60 minutes"
+            pathways: [adaptive_builder, integrative_solver]
+            layer_focus: [engineering, psychology]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Used AI as thought partner, not solution generator"
+                  layer: engineering
+                  weak_example: "'AI, build me a habit tracker'"
+                  strong_example: "'Given what I learned about my morning avoidance pattern, what design approaches might address the specific issue of unclear first steps?'"
+                - criterion: "Human judgment visible in the collaboration"
+                  layer: psychology
+                  weak_example: "Accepted AI's first suggestion"
+                  strong_example: "Pushed back on AI suggestions that didn't fit personal context"
+                - criterion: "Resulted in design decision they wouldn't have reached alone"
+                  layer: integrative_solver
+                  weak_example: "Dojo session produced nothing new"
+                  strong_example: "Specific insight emerged from the AI collaboration"
+              red_flags:
+                - "AI did all the thinking"
+                - "No personal context provided to AI"
+                - "Dojo transcript shows no pushback or refinement"
+              growth_indicators:
+                - "Questions to AI include personal psychology"
+                - "Rejected AI suggestions with clear reasoning"
+                - "Final direction synthesizes AI input with human judgment"
+            requires: [design-decision-analysis]
+            canvas:
+              submission_type: "online_text_entry"
+              points: 0
+
+          - id: reflection-3
+            name: "Productive Reflection #3"
+            type: "reflection"
+            due_day: "Friday"
+            time_estimate: "25-35 minutes"
+            pathways: [sdl, integrative_solver, mental_model]
+            layer_focus: [psychology, engineering, philosophy]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Can articulate the chain: self-knowledge → design decision → expected outcome"
+                  layer: integrative_solver
+                  weak_example: "Describes solution without connecting to self"
+                  strong_example: "Explicit causal chain from 5 Whys to design to predicted behavior change"
+                - criterion: "Identifies what they'll be testing in Week 4"
+                  layer: adaptive_builder
+                  weak_example: "Vague: 'I'll see if it works'"
+                  strong_example: "Specific: 'If I don't check my phone within 30 min of waking 5/7 days, the design is working'"
+                - criterion: "Reflects on the process, not just the product"
+                  layer: sdl
+                  weak_example: "Only describes what they built"
+                  strong_example: "Reflects on how their thinking changed through the design process"
+              red_flags:
+                - "No connection between solution and self-knowledge"
+                - "No testable success criteria"
+                - "Reads like a product description, not a reflection"
+              growth_indicators:
+                - "Explicit learning about self through design process"
+                - "Clear success metrics tied to original challenge"
+                - "Anticipates what might need to change based on testing"
+            requires: [dojo-session]
+            canvas:
+              submission_type: "online_text_entry"
+              points: 40
+
+      # -------------------------------------------------------------------
+      # WEEK 4: DEMONSTRATION
+      # -------------------------------------------------------------------
+      - number: 4
+        course_week: 4
+        title: "Proving What You Learned"
+
+        hook:
+          question: "What evidence do you have that you—not just your solution—have changed?"
+          weak_answer: "'I built an app and used it a few times'"
+          strong_answer: "'I've checked my phone after waking only twice this week vs. every day before. More importantly, I now notice the impulse before acting on it.'"
+
+        pathways:
+          - id: sdl
+            name: "Self-Directed Learning"
+            this_week: "Evaluate results, identify what to carry forward"
+            builds_on: "Designed solution based on self-knowledge"
+            builds_toward: "Apply same process to acquaintance in Sprint 2"
+
+          - id: integrative_solver
+            name: "Integrative Solver"
+            this_week: "Defend design decisions with evidence"
+            builds_on: "Connected all layers in design"
+            builds_toward: "Apply integration to external stakeholders"
+
+          - id: adaptive_builder
+            name: "Adaptive Builder"
+            this_week: "Reflect on iteration process"
+            builds_on: "Built and tested first iteration"
+            builds_toward: "Apply iteration mindset to peer feedback"
+
+          - id: mental_model
+            name: "Mental Model"
+            this_week: "Full integration: Philosophy → Science → Psychology → Engineering → Business Value"
+            builds_on: "All layers established individually"
+            builds_toward: "Apply integrated thinking to new stakeholder"
+
+        misconceptions:
+          - belief: "The demo tests whether my solution worked"
+            reality: "The demo tests whether YOU learned. The solution is evidence, not the point."
+            intervention: "Demo questions focus on thinking process, not outcomes"
+
+          - belief: "I can prepare by reviewing my notes"
+            reality: "The demo is handwritten, closed-book. You have to KNOW it, not remember where you wrote it."
+            intervention: "Practice articulating without notes; peer mock-demos"
+
+        class_session:
+          duration: 110
+          mode: "in-person"
+          segments:
+            - name: "Demo preparation"
+              duration: 20
+              type: "activity"
+              purpose: "Review what demo will test; identify gaps"
+              layer_focus: [sdl]
+            - name: "Peer mock demo"
+              duration: 40
+              type: "activity"
+              purpose: "Practice explaining without notes"
+              layer_focus: [philosophy, science, psychology, engineering, business]
+            - name: "Sprint 1 demonstration"
+              duration: 50
+              type: "demo"
+              purpose: "Handwritten responses to demo questions"
+              layer_focus: [philosophy, science, psychology, engineering, business]
+
+        assignments:
+          - id: sprint1-demo
+            name: "Sprint 1 Demonstration"
+            type: "demo"
+            due_day: "In-class"
+            time_estimate: "50 minutes"
+            pathways: [sdl, integrative_solver, adaptive_builder]
+            layer_focus: [philosophy, psychology, engineering]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Can articulate self-knowledge discovered through 5 Whys"
+                  layer: psychology
+                  weak_example: "Vague or generic insight"
+                  strong_example: "Specific, surprising insight that couldn't have been predicted"
+                - criterion: "Can trace design decisions to self-knowledge"
+                  layer: integrative_solver
+                  weak_example: "Describes solution without connection to self"
+                  strong_example: "Clear causal chain from insight to design choice"
+                - criterion: "Has evidence of actual behavior change"
+                  layer: adaptive_builder
+                  weak_example: "'I think it's helping'"
+                  strong_example: "Specific data points or observations"
+                - criterion: "Can explain what they'd do differently"
+                  layer: sdl
+                  weak_example: "'It went well'"
+                  strong_example: "Specific learning that would change approach"
+              red_flags:
+                - "Answers could have been written without doing the work"
+                - "No specific evidence or examples"
+                - "Can't explain why design choices were made"
+              growth_indicators:
+                - "Answers show genuine self-knowledge"
+                - "Can improvise when asked follow-up questions"
+                - "Connects this sprint's learning to future sprints"
+            requires: [reflection-3]
+            canvas:
+              submission_type: "online_upload"
+              points: 40
+
+          - id: reflection-4
+            name: "Sprint 1 Final Reflection"
+            type: "reflection"
+            due_day: "Friday"
+            time_estimate: "30-40 minutes"
+            pathways: [sdl, mental_model]
+            layer_focus: [philosophy, psychology, science]
+            analysis:
+              analyzable: true
+              quality_criteria:
+                - criterion: "Synthesizes sprint learning, not just summarizes activities"
+                  layer: sdl
+                  weak_example: "List of what they did each week"
+                  strong_example: "Narrative of how their thinking evolved"
+                - criterion: "Identifies transferable insight"
+                  layer: integrative_solver
+                  weak_example: "'I learned about myself'"
+                  strong_example: "'I learned that my first explanation for failure is always wrong—I need to dig deeper'"
+                - criterion: "Connects to Sprint 2 (acquaintance as stakeholder)"
+                  layer: sdl
+                  weak_example: "No mention of future application"
+                  strong_example: "Explicit wondering about how self-knowledge process applies to understanding others"
+              red_flags:
+                - "Could have been written after Week 1"
+                - "No evidence of changed thinking"
+                - "Focuses on product, not process"
+              growth_indicators:
+                - "Clear before/after in their understanding"
+                - "Questions they're now asking that they wouldn't have before"
+                - "Honest about what didn't work"
+            requires: [sprint1-demo]
+            canvas:
+              submission_type: "online_text_entry"
+              points: 40
