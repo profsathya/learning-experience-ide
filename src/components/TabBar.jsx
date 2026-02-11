@@ -6,6 +6,7 @@ const VIEWS = [
   { id: 'pathways', label: 'By Pathway',  icon: '⟿' },
   { id: 'timeline', label: 'Timeline',    icon: '↓' },
   { id: 'deps',     label: 'Dependencies', icon: '⟶' },
+  { id: 'data',     label: 'Data Table',   icon: '☰' },
 ];
 
 export { VIEWS };

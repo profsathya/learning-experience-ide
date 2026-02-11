@@ -10,6 +10,7 @@ import LayerView from './views/LayerView';
 import PathwayView from './views/PathwayView';
 import TimelineView from './views/TimelineView';
 import DependencyView from './views/DependencyView';
+import DataTableView from './views/DataTableView';
 
 export default function App() {
   const { loaded, error, data } = useCourseData();
@@ -186,6 +187,12 @@ export default function App() {
           )}
           {view === 'deps' && (
             <DependencyView
+              onSelectAssignment={handleSelectAssignment}
+              selected={selectedAssignment}
+            />
+          )}
+          {view === 'data' && (
+            <DataTableView
               onSelectAssignment={handleSelectAssignment}
               selected={selectedAssignment}
             />

@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useEffect } from 'react';
+import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { parseYaml, serializeToYaml } from '../utils/yaml-io';
 
 const CourseDataContext = createContext(null);
@@ -6,9 +6,54 @@ const CourseDataContext = createContext(null);
 function courseReducer(state, action) {
   switch (action.type) {
     case 'LOAD':
-      return { ...action.payload, _loaded: true };
+      return { ...action.payload, _loaded: true, _dirty: false };
     case 'LOAD_ERROR':
       return { _loaded: true, _error: action.error };
+
+    case 'UPDATE_ASSIGNMENT': {
+      const assignments = (state.assignments || []).map((a) =>
+        a.id === action.id ? { ...a, ...action.changes } : a
+      );
+      return { ...state, assignments, _dirty: true };
+    }
+
+    case 'ADD_ASSIGNMENT': {
+      const assignments = [...(state.assignments || []), action.assignment];
+      return { ...state, assignments, _dirty: true };
+    }
+
+    case 'DELETE_ASSIGNMENT': {
+      const assignments = (state.assignments || []).filter((a) => a.id !== action.id);
+      // Also remove from requires of other assignments
+      const cleaned = assignments.map((a) => ({
+        ...a,
+        requires: (a.requires || []).filter((r) => r !== action.id),
+      }));
+      return { ...state, assignments: cleaned, _dirty: true };
+    }
+
+    case 'DUPLICATE_ASSIGNMENT': {
+      const orig = (state.assignments || []).find((a) => a.id === action.id);
+      if (!orig) return state;
+      const copy = {
+        ...orig,
+        id: orig.id + '-copy',
+        name: orig.name + ' (copy)',
+        requires: [...(orig.requires || [])],
+        pathways: [...(orig.pathways || [])],
+        criteria: (orig.criteria || []).map((c) => ({ ...c })),
+        red_flags: [...(orig.red_flags || [])],
+        growth: [...(orig.growth || [])],
+      };
+      const idx = (state.assignments || []).findIndex((a) => a.id === action.id);
+      const assignments = [...(state.assignments || [])];
+      assignments.splice(idx + 1, 0, copy);
+      return { ...state, assignments, _dirty: true };
+    }
+
+    case 'MARK_CLEAN':
+      return { ...state, _dirty: false };
+
     default:
       return state;
   }
@@ -16,6 +61,7 @@ function courseReducer(state, action) {
 
 export function CourseDataProvider({ children }) {
   const [data, dispatch] = useReducer(courseReducer, { _loaded: false });
+  const originalYamlRef = useRef(null);
 
   useEffect(() => {
     fetch('./data/cst395-sprint1.yaml')
@@ -23,7 +69,10 @@ export function CourseDataProvider({ children }) {
         if (!r.ok) throw new Error(`Failed to load: ${r.status}`);
         return r.text();
       })
-      .then((text) => dispatch({ type: 'LOAD', payload: parseYaml(text) }))
+      .then((text) => {
+        originalYamlRef.current = text;
+        dispatch({ type: 'LOAD', payload: parseYaml(text) });
+      })
       .catch((err) => dispatch({ type: 'LOAD_ERROR', error: err.message }));
   }, []);
 
@@ -31,6 +80,7 @@ export function CourseDataProvider({ children }) {
     data,
     loaded: data._loaded,
     error: data._error,
+    dirty: data._dirty || false,
 
     // Lookup helpers
     getLayer: (id) => (data.layers || []).find((l) => l.id === id),
@@ -50,9 +100,45 @@ export function CourseDataProvider({ children }) {
       return [...set];
     },
 
+    // Mutation actions
+    updateAssignment: (id, changes) =>
+      dispatch({ type: 'UPDATE_ASSIGNMENT', id, changes }),
+    addAssignment: (assignment) =>
+      dispatch({ type: 'ADD_ASSIGNMENT', assignment }),
+    deleteAssignment: (id) =>
+      dispatch({ type: 'DELETE_ASSIGNMENT', id }),
+    duplicateAssignment: (id) =>
+      dispatch({ type: 'DUPLICATE_ASSIGNMENT', id }),
+
+    // Export
     exportYaml: () => {
-      const { _loaded, _error, ...clean } = data;
+      const { _loaded, _error, _dirty, ...clean } = data;
       return serializeToYaml(clean);
+    },
+    downloadYaml: () => {
+      const { _loaded, _error, _dirty, ...clean } = data;
+      const yaml = serializeToYaml(clean);
+      const blob = new Blob([yaml], { type: 'text/yaml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${clean.course?.id || 'course'}-data.yaml`;
+      a.click();
+      URL.revokeObjectURL(url);
+      dispatch({ type: 'MARK_CLEAN' });
+    },
+    copyYaml: async () => {
+      const { _loaded, _error, _dirty, ...clean } = data;
+      const yaml = serializeToYaml(clean);
+      await navigator.clipboard.writeText(yaml);
+      dispatch({ type: 'MARK_CLEAN' });
+    },
+
+    // Revert to original
+    revert: () => {
+      if (originalYamlRef.current) {
+        dispatch({ type: 'LOAD', payload: parseYaml(originalYamlRef.current) });
+      }
     },
   };
 
