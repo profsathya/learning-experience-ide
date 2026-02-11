@@ -1,0 +1,454 @@
+# CST395 Sprint 1 — Course Design Data
+# Single source of truth for the Course Design IDE
+# Schema: Philosophy → Psychology → Design → Engineering → Business spectrum
+# Science is orthogonal (epistemic quality at every layer)
+
+course:
+  id: CST395
+  name: "AI-Native Solution Engineering"
+  theme_color: "#14b8a6"
+  semester: "Spring 2025"
+
+layers:
+  - id: philosophy
+    name: Philosophy
+    color: "#8b5cf6"
+    position: 0
+    question: "Why does this matter?"
+    science: "Is the 'why' grounded in examined reasoning?"
+
+  - id: psychology
+    name: Psychology
+    color: "#22c55e"
+    position: 1
+    question: "How do humans actually behave?"
+    science: "Is understanding backed by evidence, not folk wisdom?"
+
+  - id: design
+    name: Design
+    color: "#0ea5e9"
+    position: 2
+    question: "What choices and tradeoffs are we making?"
+    science: "Are tradeoff decisions testable, not just aesthetic?"
+
+  - id: engineering
+    name: Engineering
+    color: "#f97316"
+    position: 3
+    question: "How do we build something that works?"
+    science: "Does the system have feedback loops?"
+
+  - id: business
+    name: Business
+    color: "#f59e0b"
+    position: 4
+    question: "Who pays and why?"
+    science: "Is the value proposition validated, not assumed?"
+
+pathways:
+  - id: sdl
+    name: "Self-Directed Learning"
+    abbr: SDL
+    color: "#0ea5e9"
+
+  - id: integrative_solver
+    name: "Integrative Solver"
+    abbr: IS
+    color: "#8b5cf6"
+
+  - id: adaptive_builder
+    name: "Adaptive Builder"
+    abbr: AB
+    color: "#f97316"
+
+  - id: mental_model
+    name: "Mental Model"
+    abbr: MM
+    color: "#64748b"
+
+capabilities:
+  - id: sdl
+    progression:
+      1: "Identify personal gap and plan"
+      2: "Learn to help someone else"
+      3: "Learn under ambiguity"
+      4: "Demonstrate process to evaluator"
+
+  - id: integrative_solver
+    progression:
+      1: "Personal psych → design"
+      2: "Stakeholder psych → design"
+      3: "Business context → technical"
+      4: "All layers fluidly"
+
+  - id: adaptive_builder
+    progression:
+      1: "Iterate on self-feedback"
+      2: "Iterate on peer feedback"
+      3: "Iterate on external feedback"
+      4: "Anticipate iteration needs"
+
+sprints:
+  - number: 1
+    name: "Foundation"
+    focus: "Self"
+    weeks: [1, 2, 3, 4]
+
+weeks:
+  - number: 1
+    sprint: 1
+    title: "Choosing Your Challenge"
+    hook: "What have you been meaning to change but haven't?"
+    spectrum_focus: "Philosophy → Psychology boundary"
+    pathways:
+      - id: sdl
+        this_week: "Identify a real gap (not a performed one)"
+        builds_on: null
+        builds_toward: "Understanding WHY this gap exists"
+      - id: integrative_solver
+        this_week: "Connect personal values to challenge selection"
+        builds_on: null
+        builds_toward: "Connecting self-knowledge to solution design"
+      - id: mental_model
+        this_week: "Philosophy layer: Why does agency matter?"
+        builds_on: null
+        builds_toward: "Psychology layer: Why haven't I fixed this already?"
+    misconceptions:
+      - belief: "I should pick something impressive"
+        reality: "Authentic beats impressive"
+        intervention: "Show 'impressive' projects that failed vs. 'small' ones that succeeded"
+      - belief: "I already know what my problem is"
+        reality: "First answer is almost never the real problem"
+        intervention: "Week 2's 5 Whys will reveal this"
+
+  - number: 2
+    sprint: 1
+    title: "Understanding Why This Has Been Hard"
+    hook: "Why haven't you fixed this already?"
+    spectrum_focus: "Psychology → Design boundary"
+    pathways:
+      - id: sdl
+        this_week: "Use 5 Whys to discover actual root cause"
+        builds_on: "Identified a real challenge"
+        builds_toward: "Design solution that addresses root cause"
+      - id: integrative_solver
+        this_week: "Connect psychology research to personal pattern"
+        builds_on: "Connected values to challenge"
+        builds_toward: "Connect self-knowledge to design decisions"
+      - id: mental_model
+        this_week: "Psychology layer: What's actually driving my behavior?"
+        builds_on: "Philosophy layer established"
+        builds_toward: "Design layer: making intentional choices"
+    misconceptions:
+      - belief: "I already know why I haven't fixed this"
+        reality: "First answer is a story you tell yourself"
+        intervention: "5 Whys forces past comfortable answers"
+      - belief: "The problem is lack of willpower"
+        reality: "Sustainable change = design, not discipline"
+        intervention: "Share research on habit formation"
+
+  - number: 3
+    sprint: 1
+    title: "Designing Your Solution"
+    hook: "What specific self-knowledge shaped a design decision?"
+    spectrum_focus: "Design → Engineering boundary"
+    pathways:
+      - id: sdl
+        this_week: "Translate self-knowledge into design decisions"
+        builds_on: "Discovered root cause via 5 Whys"
+        builds_toward: "Evaluate whether solution actually works"
+      - id: integrative_solver
+        this_week: "Connect psychology to engineering through design"
+        builds_on: "Connected psychology to problem understanding"
+        builds_toward: "Defend design decisions in demo"
+      - id: adaptive_builder
+        this_week: "Build first iteration with feedback mechanisms"
+        builds_on: null
+        builds_toward: "Iterate based on actual usage"
+      - id: mental_model
+        this_week: "Design → Engineering: intentional choices become working systems"
+        builds_on: "Psychology layer established"
+        builds_toward: "Integration across all layers in demo"
+    misconceptions:
+      - belief: "A good solution works for most people"
+        reality: "A good solution works for THIS person"
+        intervention: "Show 'best practice' solutions that failed for specific people"
+      - belief: "I need to build something technically impressive"
+        reality: "Does it solve YOUR problem?"
+        intervention: "Celebrate simple solutions that work"
+
+  - number: 4
+    sprint: 1
+    title: "Proving What You Learned"
+    hook: "What evidence that YOU—not just your solution—have changed?"
+    spectrum_focus: "Full spectrum integration"
+    pathways:
+      - id: sdl
+        this_week: "Evaluate results, identify what to carry forward"
+        builds_on: "Designed solution based on self-knowledge"
+        builds_toward: "Apply same process to acquaintance in Sprint 2"
+      - id: integrative_solver
+        this_week: "Defend design decisions with evidence across layers"
+        builds_on: "Connected all layers in design"
+        builds_toward: "Apply integration to external stakeholders"
+      - id: adaptive_builder
+        this_week: "Reflect on iteration process"
+        builds_on: "Built and tested first iteration"
+        builds_toward: "Apply iteration mindset to peer feedback"
+      - id: mental_model
+        this_week: "Full integration: Philosophy through Engineering"
+        builds_on: "All layers established individually"
+        builds_toward: "Apply integrated thinking to new stakeholder"
+    misconceptions:
+      - belief: "The demo tests whether my solution worked"
+        reality: "The demo tests whether YOU learned"
+        intervention: "Demo questions focus on thinking process, not outcomes"
+      - belief: "I can prepare by reviewing my notes"
+        reality: "Handwritten, closed-book. You have to KNOW it."
+        intervention: "Practice articulating without notes"
+
+assignments:
+  - id: sprint1-goals
+    name: "Sprint 1 Goal Setting"
+    type: goal
+    week: 1
+    due: "Wed"
+    time: "15-20m"
+    primary_layer: philosophy
+    boundary_layer: psychology
+    pathways: [sdl]
+    requires: []
+    science_q: "Is the challenge specific and evidence-based, or a vague aspiration?"
+    criteria:
+      - text: "Challenge is specific and observable"
+        layer: psychology
+      - text: "Connects to something they actually care about"
+        layer: philosophy
+      - text: "Has failed before (not first attempt)"
+        layer: psychology
+    red_flags:
+      - "Productivity blog tone"
+      - "No failed attempts"
+      - "Vague language"
+    growth:
+      - "Specific behavioral description"
+      - "Emotional honesty"
+      - "Acknowledges failures"
+
+  - id: superagency-challenge
+    name: "Superagency Challenge"
+    type: activity
+    week: 1
+    due: "Fri"
+    time: "30-45m"
+    primary_layer: psychology
+    boundary_layer: philosophy
+    pathways: [sdl, integrative_solver]
+    requires: [sprint1-goals]
+    science_q: "Does their self-assessment use observable patterns, not just self-narrative?"
+    criteria:
+      - text: "Explains WHY this challenge matters personally"
+        layer: philosophy
+      - text: "Describes current state with specificity"
+        layer: psychology
+      - text: "Shows awareness willpower alone won't work"
+        layer: psychology
+    red_flags:
+      - "New Year's resolution"
+      - "No specificity"
+      - "Willpower framing"
+    growth:
+      - "Numbers and timeframes"
+      - "Pattern recognition"
+      - "Self-questioning"
+
+  - id: five-whys
+    name: "5 Whys Analysis"
+    type: activity
+    week: 2
+    due: "Wed"
+    time: "30-40m"
+    primary_layer: psychology
+    boundary_layer: design
+    pathways: [sdl, integrative_solver]
+    requires: [superagency-challenge]
+    science_q: "Does each 'why' go deeper based on evidence, or stay at comfortable narrative?"
+    criteria:
+      - text: "Each 'why' goes deeper, not sideways"
+        layer: psychology
+      - text: "Final answer is uncomfortable or surprising"
+        layer: psychology
+      - text: "Starts to imply design direction"
+        layer: design
+    red_flags:
+      - "Written without doing it"
+      - "Circular reasoning"
+      - "Comfortable throughout"
+    growth:
+      - "Surprise at where they landed"
+      - "Questions assumptions"
+      - "Sees design implications"
+
+  - id: reflection-2
+    name: "Reflection #2"
+    type: reflection
+    week: 2
+    due: "Fri"
+    time: "25-35m"
+    primary_layer: design
+    boundary_layer: psychology
+    pathways: [sdl, mental_model]
+    requires: [five-whys]
+    science_q: "Can they distinguish what they knew before from what they actually learned?"
+    criteria:
+      - text: "Connects 5 Whys insight to design direction"
+        layer: design
+      - text: "Distinguishes between what they knew and learned"
+        layer: psychology
+      - text: "Identifies specific design implications"
+        layer: design
+    red_flags:
+      - "Written without doing 5 Whys"
+      - "No changed understanding"
+      - "Unchanged from W1"
+    growth:
+      - "Before/after in thinking"
+      - "Design decision from insight"
+      - "Self-questions"
+
+  - id: design-analysis
+    name: "Design Decision Analysis"
+    type: activity
+    week: 3
+    due: "Wed"
+    time: "30-40m"
+    primary_layer: design
+    boundary_layer: engineering
+    pathways: [integrative_solver]
+    requires: [reflection-2]
+    science_q: "Are design tradeoffs testable, or just preferences?"
+    criteria:
+      - text: "Each design decision traced to self-knowledge"
+        layer: design
+      - text: "Design differs from generic because of personal context"
+        layer: design
+      - text: "Anticipates failure modes specific to self"
+        layer: engineering
+    red_flags:
+      - "Generic solution"
+      - "No 5 Whys reference"
+      - "Tech without psychology"
+    growth:
+      - "Self→design mapping"
+      - "Decisions weird without context"
+      - "Personal failure anticipation"
+
+  - id: dojo
+    name: "Symbiotic Thinking Dojo"
+    type: activity
+    week: 3
+    due: "Wed"
+    time: "45-60m"
+    primary_layer: engineering
+    boundary_layer: design
+    pathways: [adaptive_builder, integrative_solver]
+    requires: [design-analysis]
+    science_q: "Did the AI collaboration produce testable improvements over solo work?"
+    criteria:
+      - text: "AI as thought partner, not solution generator"
+        layer: engineering
+      - text: "Human judgment visible in collaboration"
+        layer: design
+      - text: "Resulted in decision they wouldn't have reached alone"
+        layer: design
+    red_flags:
+      - "AI did all thinking"
+      - "No personal context to AI"
+      - "No pushback"
+    growth:
+      - "Personal psych in AI queries"
+      - "Rejected with reasoning"
+      - "Synthesis"
+
+  - id: reflection-3
+    name: "Reflection #3"
+    type: reflection
+    week: 3
+    due: "Fri"
+    time: "25-35m"
+    primary_layer: design
+    boundary_layer: philosophy
+    pathways: [sdl, integrative_solver, mental_model]
+    requires: [dojo]
+    science_q: "Can they provide evidence for the chain: self-knowledge → design → outcome?"
+    criteria:
+      - text: "Articulates chain: self-knowledge → design → outcome"
+        layer: design
+      - text: "Identifies what they'll test in Week 4"
+        layer: engineering
+      - text: "Reflects on process, not just product"
+        layer: philosophy
+    red_flags:
+      - "No solution↔self connection"
+      - "No test criteria"
+      - "Product description"
+    growth:
+      - "Self-learning via design"
+      - "Clear metrics"
+      - "Change anticipation"
+
+  - id: demo
+    name: "Sprint 1 Demo"
+    type: demo
+    week: 4
+    due: "In-class"
+    time: "50m"
+    primary_layer: null
+    boundary_layer: null
+    pathways: [sdl, integrative_solver, adaptive_builder]
+    requires: [reflection-3]
+    science_q: "Can they provide evidence at every layer, not just narrative?"
+    criteria:
+      - text: "Articulates why this matters (not just what they did)"
+        layer: philosophy
+      - text: "Can trace 5 Whys self-knowledge"
+        layer: psychology
+      - text: "Can explain design tradeoffs and why"
+        layer: design
+      - text: "Has evidence of actual behavior change"
+        layer: engineering
+    red_flags:
+      - "Answers without depth"
+      - "No evidence"
+      - "Can't explain why"
+    growth:
+      - "Genuine self-knowledge"
+      - "Improvises follow-ups"
+      - "Connects to future"
+
+  - id: reflection-4
+    name: "Final Reflection"
+    type: reflection
+    week: 4
+    due: "Fri"
+    time: "30-40m"
+    primary_layer: philosophy
+    boundary_layer: design
+    pathways: [sdl, mental_model]
+    requires: [demo]
+    science_q: "Does reflection synthesize with evidence, or just summarize activities?"
+    criteria:
+      - text: "Synthesizes sprint learning, not just summarizes"
+        layer: philosophy
+      - text: "Identifies transferable design insight"
+        layer: design
+      - text: "Connects to Sprint 2"
+        layer: psychology
+    red_flags:
+      - "Written after W1"
+      - "No changed thinking"
+      - "Product over process"
+    growth:
+      - "Before/after understanding"
+      - "New questions"
+      - "Honest about failures"
