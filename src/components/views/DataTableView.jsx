@@ -1,9 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useCourseData } from '../../hooks/useCourseData';
 import { getTypeStyle } from '../tags/TypeBadge';
+import { EDIT_MODE } from '../../config';
+import ReviewStatusBadge, { getReviewStatus } from '../ReviewStatusBadge';
 
 const TYPES = ['goal', 'activity', 'reflection', 'demo', 'peer'];
-const COLUMNS = [
+const REVIEW_STATUSES = ['proposed', 'confirmed', 'needs_review'];
+
+const BASE_COLUMNS = [
   { key: 'name', label: 'Name', w: 'minmax(140px,1fr)' },
   { key: 'type', label: 'Type', w: '90px' },
   { key: 'week', label: 'Wk', w: '48px' },
@@ -26,6 +30,9 @@ export default function DataTableView({ onSelectAssignment, selected }) {
     addAssignment,
     deleteAssignment,
     duplicateAssignment,
+    confirmAssignment,
+    rejectAssignment,
+    setReviewStatus,
   } = useCourseData();
 
   const layers = data.layers || [];
@@ -36,7 +43,14 @@ export default function DataTableView({ onSelectAssignment, selected }) {
   const [sortAsc, setSortAsc] = useState(true);
   const [filterType, setFilterType] = useState(null);
   const [filterWeek, setFilterWeek] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
   const [editCell, setEditCell] = useState(null); // { id, key }
+
+  // Add status column when there are any non-confirmed assignments
+  const hasImported = assignments.some((a) => a.review_status && a.review_status !== 'confirmed');
+  const COLUMNS = hasImported
+    ? [{ key: 'review_status', label: 'Status', w: '72px' }, ...BASE_COLUMNS]
+    : BASE_COLUMNS;
 
   const weeks = useMemo(() => {
     const s = new Set(assignments.map((a) => a.week));
@@ -47,6 +61,7 @@ export default function DataTableView({ onSelectAssignment, selected }) {
     let list = [...assignments];
     if (filterType) list = list.filter((a) => a.type === filterType);
     if (filterWeek) list = list.filter((a) => a.week === filterWeek);
+    if (filterStatus) list = list.filter((a) => getReviewStatus(a) === filterStatus);
     list.sort((a, b) => {
       let va = a[sortKey];
       let vb = b[sortKey];
@@ -59,7 +74,7 @@ export default function DataTableView({ onSelectAssignment, selected }) {
       return 0;
     });
     return list;
-  }, [assignments, sortKey, sortAsc, filterType, filterWeek]);
+  }, [assignments, sortKey, sortAsc, filterType, filterWeek, filterStatus]);
 
   function handleSort(key) {
     if (sortKey === key) {
@@ -91,6 +106,7 @@ export default function DataTableView({ onSelectAssignment, selected }) {
   }
 
   function startEdit(id, key) {
+    if (!EDIT_MODE) return;
     setEditCell({ id, key });
   }
 
@@ -115,6 +131,20 @@ export default function DataTableView({ onSelectAssignment, selected }) {
         </span>
 
         <div className="ml-auto flex gap-1.5 items-center">
+          {/* Status filter (only when there are imported items) */}
+          {hasImported && (
+            <select
+              className="text-[0.72rem] border border-slate-200 rounded px-1.5 py-[3px] bg-white text-slate-600"
+              value={filterStatus || ''}
+              onChange={(e) => setFilterStatus(e.target.value || null)}
+            >
+              <option value="">All statuses</option>
+              {REVIEW_STATUSES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          )}
+
           {/* Type filter */}
           <select
             className="text-[0.72rem] border border-slate-200 rounded px-1.5 py-[3px] bg-white text-slate-600"
@@ -123,9 +153,7 @@ export default function DataTableView({ onSelectAssignment, selected }) {
           >
             <option value="">All types</option>
             {TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
+              <option key={t} value={t}>{t}</option>
             ))}
           </select>
 
@@ -139,19 +167,19 @@ export default function DataTableView({ onSelectAssignment, selected }) {
           >
             <option value="">All weeks</option>
             {weeks.map((w) => (
-              <option key={w} value={w}>
-                Week {w}
-              </option>
+              <option key={w} value={w}>Week {w}</option>
             ))}
           </select>
 
-          <button
-            onClick={handleAdd}
-            className="text-[0.72rem] font-semibold px-2.5 py-[4px] rounded border-none cursor-pointer"
-            style={{ backgroundColor: '#14b8a618', color: '#0f766e' }}
-          >
-            + Add
-          </button>
+          {EDIT_MODE && (
+            <button
+              onClick={handleAdd}
+              className="text-[0.72rem] font-semibold px-2.5 py-[4px] rounded border-none cursor-pointer"
+              style={{ backgroundColor: '#14b8a618', color: '#0f766e' }}
+            >
+              + Add
+            </button>
+          )}
         </div>
       </div>
 
@@ -189,6 +217,7 @@ export default function DataTableView({ onSelectAssignment, selected }) {
               layers={layers}
               pathways={pathways}
               assignments={assignments}
+              hasStatusColumn={hasImported}
               getLayer={getLayer}
               getPathway={getPathway}
               getAssignment={getAssignment}
@@ -198,6 +227,9 @@ export default function DataTableView({ onSelectAssignment, selected }) {
               onCancelEdit={cancelEdit}
               onDelete={() => deleteAssignment(a.id)}
               onDuplicate={() => duplicateAssignment(a.id)}
+              onConfirm={() => confirmAssignment(a.id)}
+              onReject={() => rejectAssignment(a.id)}
+              onSetStatus={(s) => setReviewStatus(a.id, s)}
             />
           ))}
         </div>
@@ -219,6 +251,7 @@ function TableRow({
   layers,
   pathways,
   assignments,
+  hasStatusColumn,
   getLayer,
   getPathway,
   getAssignment,
@@ -228,16 +261,37 @@ function TableRow({
   onCancelEdit,
   onDelete,
   onDuplicate,
+  onConfirm,
+  onReject,
+  onSetStatus,
 }) {
-  const isEditing = (key) => editCell?.id === a.id && editCell?.key === key;
+  const isEditing = (key) => EDIT_MODE && editCell?.id === a.id && editCell?.key === key;
   const st = getTypeStyle(a.type);
+  const status = getReviewStatus(a);
+  const isProposed = status === 'proposed';
 
   const cellClass =
     'px-2 py-[5px] text-[0.74rem] border-b border-slate-100 flex items-center min-h-[32px]' +
-    (isSelected ? ' bg-teal-50' : ' hover:bg-slate-50');
+    (isSelected ? ' bg-teal-50' : isProposed ? ' bg-amber-50/30' : ' hover:bg-slate-50');
 
   return (
     <>
+      {/* Status column */}
+      {hasStatusColumn && (
+        <div className={cellClass}>
+          <ReviewStatusBadge assignment={a} />
+          {EDIT_MODE && isProposed && (
+            <button
+              onClick={onConfirm}
+              className="text-[0.56rem] ml-1 px-1 py-0 rounded border border-green-200 bg-green-50 text-green-600 cursor-pointer font-semibold"
+              title="Confirm"
+            >
+              OK
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Name */}
       <div className={cellClass} style={{ cursor: 'pointer' }}>
         {isEditing('name') ? (
@@ -257,6 +311,7 @@ function TableRow({
             onClick={onSelect}
             onDoubleClick={() => onStartEdit(a.id, 'name')}
             title={a.name}
+            style={isProposed ? { fontStyle: 'italic' } : undefined}
           >
             {a.name}
           </span>
@@ -501,23 +556,25 @@ function TableRow({
             >
               {a.science_q || '\u2014'}
             </span>
-            {/* Row actions */}
-            <div className="flex gap-[2px] ml-auto shrink-0">
-              <button
-                onClick={onDuplicate}
-                className="text-[0.62rem] text-slate-400 hover:text-slate-600 px-1 py-0 border-none bg-transparent cursor-pointer"
-                title="Duplicate"
-              >
-                \u29C9
-              </button>
-              <button
-                onClick={onDelete}
-                className="text-[0.62rem] text-slate-400 hover:text-red-500 px-1 py-0 border-none bg-transparent cursor-pointer"
-                title="Delete"
-              >
-                \u2715
-              </button>
-            </div>
+            {/* Row actions (edit mode only) */}
+            {EDIT_MODE && (
+              <div className="flex gap-[2px] ml-auto shrink-0">
+                <button
+                  onClick={onDuplicate}
+                  className="text-[0.62rem] text-slate-400 hover:text-slate-600 px-1 py-0 border-none bg-transparent cursor-pointer"
+                  title="Duplicate"
+                >
+                  &#10697;
+                </button>
+                <button
+                  onClick={onDelete}
+                  className="text-[0.62rem] text-slate-400 hover:text-red-500 px-1 py-0 border-none bg-transparent cursor-pointer"
+                  title="Delete"
+                >
+                  &#10005;
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

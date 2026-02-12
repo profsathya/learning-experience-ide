@@ -1,4 +1,5 @@
 import { useCourseData } from '../../hooks/useCourseData';
+import { getReviewStatus } from '../ReviewStatusBadge';
 
 export default function SpectrumView({ onSelectAssignment, selected }) {
   const { data, getLayer } = useCourseData();
@@ -102,6 +103,8 @@ function CellItem({ a, type, layerColor, selected, onClick, getLayer }) {
   const isPrimary = type === 'primary';
   const truncName = a.name.length > 16 ? a.name.slice(0, 14) + '...' : a.name;
   const bl = a.boundary_layer ? getLayer(a.boundary_layer) : null;
+  const status = getReviewStatus(a);
+  const isProposed = status === 'proposed';
 
   return (
     <div
@@ -113,9 +116,13 @@ function CellItem({ a, type, layerColor, selected, onClick, getLayer }) {
         backgroundColor: selected === a.id ? '#14b8a610' : isPrimary ? layerColor + '0a' : 'transparent',
         border: selected === a.id
           ? '1px solid #14b8a6'
-          : isPrimary
-            ? `1px solid ${layerColor}15`
-            : `1px dashed ${layerColor}20`,
+          : isProposed
+            ? `1px dashed ${layerColor}30`
+            : isPrimary
+              ? `1px solid ${layerColor}15`
+              : `1px dashed ${layerColor}20`,
+        opacity: isProposed ? 0.7 : 1,
+        fontStyle: isProposed ? 'italic' : 'normal',
       }}
     >
       <span className="text-[0.6rem]" style={{ color: layerColor }}>
@@ -125,6 +132,11 @@ function CellItem({ a, type, layerColor, selected, onClick, getLayer }) {
       {isPrimary && bl && (
         <span className="text-[0.6rem]" style={{ color: bl.color }}>
           {' '}&rarr;{bl.name.slice(0, 4)}
+        </span>
+      )}
+      {isProposed && (
+        <span className="text-[0.52rem] ml-0.5" style={{ color: '#d97706' }}>
+          {'\uD83D\uDFE1'}
         </span>
       )}
     </div>

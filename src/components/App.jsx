@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useCourseData } from '../hooks/useCourseData';
+import { EDIT_MODE } from '../config';
 import Header from './Header';
 import TabBar from './TabBar';
 import DetailPanel from './DetailPanel';
+import ImportDialog from './ImportDialog';
 import MentalModelView from './views/MentalModelView';
 import SpectrumView from './views/SpectrumView';
 import CoverageView from './views/CoverageView';
@@ -19,6 +21,7 @@ export default function App() {
   const [selectedAssignment, setSelectedAssignment] = useState(null);
   const [selectedLayer, setSelectedLayer] = useState('psychology');
   const [selectedPathway, setSelectedPathway] = useState('sdl');
+  const [showImport, setShowImport] = useState(false);
 
   // Graph controls (Phase 3)
   const [showPathways, setShowPathways] = useState(false);
@@ -55,7 +58,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      <Header />
+      <Header onOpenImport={() => setShowImport(true)} />
       <TabBar activeView={view} onChangeView={handleChangeView} />
 
       {/* Graph controls bar */}
@@ -207,6 +210,10 @@ export default function App() {
           />
         )}
       </div>
+      {/* Import Dialog */}
+      {EDIT_MODE && showImport && (
+        <ImportDialog onClose={() => setShowImport(false)} />
+      )}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useCourseData } from '../hooks/useCourseData';
+import { EDIT_MODE } from '../config';
 
-export default function Header() {
+export default function Header({ onOpenImport }) {
   const { data, dirty, downloadYaml, copyYaml, revert } = useCourseData();
   const course = data.course || {};
   const layers = data.layers || [];
@@ -28,7 +29,7 @@ export default function Header() {
         <span className="text-[0.68rem] text-slate-400 ml-2">
           Sprint 1 &middot; Course Design IDE
         </span>
-        {dirty && (
+        {EDIT_MODE && dirty && (
           <span
             className="text-[0.64rem] font-semibold px-1.5 py-[1px] rounded-full ml-1"
             style={{ backgroundColor: '#f59e0b18', color: '#d97706' }}
@@ -56,28 +57,39 @@ export default function Header() {
           ))}
         </div>
 
-        {dirty && (
-          <button
-            onClick={revert}
-            className="text-[0.68rem] font-semibold px-2 py-[3px] rounded border border-slate-200 bg-white text-slate-500 cursor-pointer hover:text-slate-700"
-          >
-            Revert
-          </button>
+        {EDIT_MODE && (
+          <>
+            {dirty && (
+              <button
+                onClick={revert}
+                className="text-[0.68rem] font-semibold px-2 py-[3px] rounded border border-slate-200 bg-white text-slate-500 cursor-pointer hover:text-slate-700"
+              >
+                Revert
+              </button>
+            )}
+            <button
+              onClick={handleCopy}
+              className="text-[0.68rem] font-semibold px-2 py-[3px] rounded border-none cursor-pointer"
+              style={{ backgroundColor: '#f1f5f9', color: copied ? '#0f766e' : '#64748b' }}
+            >
+              {copied ? 'Copied!' : 'Copy YAML'}
+            </button>
+            <button
+              onClick={downloadYaml}
+              className="text-[0.68rem] font-semibold px-2 py-[3px] rounded border-none cursor-pointer"
+              style={{ backgroundColor: '#14b8a618', color: '#0f766e' }}
+            >
+              Download
+            </button>
+            <button
+              onClick={onOpenImport}
+              className="text-[0.68rem] font-semibold px-2 py-[3px] rounded border-none cursor-pointer"
+              style={{ backgroundColor: '#8b5cf618', color: '#7c3aed' }}
+            >
+              Import
+            </button>
+          </>
         )}
-        <button
-          onClick={handleCopy}
-          className="text-[0.68rem] font-semibold px-2 py-[3px] rounded border-none cursor-pointer"
-          style={{ backgroundColor: '#f1f5f9', color: copied ? '#0f766e' : '#64748b' }}
-        >
-          {copied ? 'Copied!' : 'Copy YAML'}
-        </button>
-        <button
-          onClick={downloadYaml}
-          className="text-[0.68rem] font-semibold px-2 py-[3px] rounded border-none cursor-pointer"
-          style={{ backgroundColor: '#14b8a618', color: '#0f766e' }}
-        >
-          Download
-        </button>
       </div>
     </div>
   );

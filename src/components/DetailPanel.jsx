@@ -1,10 +1,12 @@
 import { useCourseData } from '../hooks/useCourseData';
+import { EDIT_MODE } from '../config';
 import TypeBadge from './tags/TypeBadge';
 import LayerBadge from './tags/LayerBadge';
 import PathwayBadge from './tags/PathwayBadge';
+import ReviewStatusBadge, { getReviewStatus } from './ReviewStatusBadge';
 
 export default function DetailPanel({ assignmentId, onClose }) {
-  const { getAssignment, getLayer, data } = useCourseData();
+  const { getAssignment, getLayer, data, confirmAssignment, setReviewStatus } = useCourseData();
   const a = getAssignment(assignmentId);
   if (!a) return null;
 
@@ -13,6 +15,7 @@ export default function DetailPanel({ assignmentId, onClose }) {
   const dependents = assignments.filter((x) => (x.requires || []).includes(a.id));
   const isFullSpectrum = !a.primary_layer && !a.boundary_layer;
   const layers = data.layers || [];
+  const status = getReviewStatus(a);
 
   return (
     <div className="sticky top-4 self-start">
@@ -24,7 +27,39 @@ export default function DetailPanel({ assignmentId, onClose }) {
           &#10005;
         </button>
       </div>
-      <div className="p-[18px] bg-white rounded-xl border border-slate-200 text-[0.8rem]">
+      <div
+        className="p-[18px] bg-white rounded-xl text-[0.8rem]"
+        style={{
+          border: status === 'proposed'
+            ? '1px dashed #fcd34d60'
+            : status === 'needs_review'
+              ? '1px solid #fdba7460'
+              : '1px solid #e2e8f0',
+        }}
+      >
+        {/* Review status bar */}
+        {status !== 'confirmed' && (
+          <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-100">
+            <ReviewStatusBadge assignment={a} size="md" />
+            {EDIT_MODE && status === 'proposed' && (
+              <div className="flex gap-1">
+                <button
+                  onClick={() => confirmAssignment(a.id)}
+                  className="text-[0.66rem] font-semibold px-2 py-[2px] rounded border border-green-200 bg-green-50 text-green-600 cursor-pointer"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setReviewStatus(a.id, 'needs_review')}
+                  className="text-[0.66rem] font-semibold px-2 py-[2px] rounded border border-amber-200 bg-amber-50 text-amber-600 cursor-pointer"
+                >
+                  Flag
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex justify-between mb-3.5">
           <div>

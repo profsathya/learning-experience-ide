@@ -1,8 +1,12 @@
 import TypeBadge from './tags/TypeBadge';
 import LayerBadge from './tags/LayerBadge';
+import ReviewStatusBadge, { getReviewStatus } from './ReviewStatusBadge';
 
 export default function AssignmentCard({ assignment, onClick, selected, compact = false }) {
   const isSelected = selected === assignment.id;
+  const status = getReviewStatus(assignment);
+  const isProposed = status === 'proposed';
+  const isNeedsReview = status === 'needs_review';
 
   return (
     <div
@@ -10,16 +14,26 @@ export default function AssignmentCard({ assignment, onClick, selected, compact 
       className="rounded-lg cursor-pointer transition-all mb-[5px]"
       style={{
         padding: compact ? '7px 10px' : '10px 14px',
-        border: isSelected ? '2px solid #14b8a6' : '1px solid #e2e8f0',
-        backgroundColor: isSelected ? '#f0fdfa' : '#fff',
+        border: isSelected
+          ? '2px solid #14b8a6'
+          : isProposed
+            ? '1px dashed #fcd34d60'
+            : isNeedsReview
+              ? '1px solid #fdba7460'
+              : '1px solid #e2e8f0',
+        backgroundColor: isSelected ? '#f0fdfa' : isProposed ? '#fffbeb08' : '#fff',
         boxShadow: isSelected ? '0 0 0 3px #14b8a618' : 'none',
+        opacity: isProposed ? 0.8 : 1,
       }}
     >
       <div className="flex justify-between items-start gap-1.5">
         <div className="flex-1 min-w-0">
           <div
             className="font-semibold text-slate-800 mb-[3px]"
-            style={{ fontSize: compact ? '0.78rem' : '0.82rem' }}
+            style={{
+              fontSize: compact ? '0.78rem' : '0.82rem',
+              fontStyle: isProposed ? 'italic' : 'normal',
+            }}
           >
             {assignment.name}
           </div>
@@ -35,6 +49,9 @@ export default function AssignmentCard({ assignment, onClick, selected, compact 
               <span className="text-[0.6rem] text-slate-400 font-semibold italic">
                 Full spectrum
               </span>
+            )}
+            {status !== 'confirmed' && (
+              <ReviewStatusBadge assignment={assignment} />
             )}
           </div>
         </div>

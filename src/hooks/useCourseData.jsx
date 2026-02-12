@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect, useRef } from 'react';
 import { parseYaml, serializeToYaml } from '../utils/yaml-io';
+import { mergeProposed, mergeWeeks } from '../utils/import-merge';
 
 const CourseDataContext = createContext(null);
 
@@ -11,14 +12,25 @@ function courseReducer(state, action) {
       return { _loaded: true, _error: action.error };
 
     case 'UPDATE_ASSIGNMENT': {
-      const assignments = (state.assignments || []).map((a) =>
-        a.id === action.id ? { ...a, ...action.changes } : a
-      );
+      const assignments = (state.assignments || []).map((a) => {
+        if (a.id !== action.id) return a;
+        const updated = { ...a, ...action.changes };
+        // If an imported assignment is edited, mark it as hybrid
+        if (a.source === 'imported' && a.review_status !== 'confirmed') {
+          updated.source = 'hybrid';
+        }
+        return updated;
+      });
       return { ...state, assignments, _dirty: true };
     }
 
     case 'ADD_ASSIGNMENT': {
-      const assignments = [...(state.assignments || []), action.assignment];
+      const assignment = {
+        ...action.assignment,
+        review_status: action.assignment.review_status || 'confirmed',
+        source: action.assignment.source || 'manual',
+      };
+      const assignments = [...(state.assignments || []), assignment];
       return { ...state, assignments, _dirty: true };
     }
 
@@ -44,10 +56,44 @@ function courseReducer(state, action) {
         criteria: (orig.criteria || []).map((c) => ({ ...c })),
         red_flags: [...(orig.red_flags || [])],
         growth: [...(orig.growth || [])],
+        review_status: 'confirmed',
+        source: 'manual',
       };
       const idx = (state.assignments || []).findIndex((a) => a.id === action.id);
       const assignments = [...(state.assignments || [])];
       assignments.splice(idx + 1, 0, copy);
+      return { ...state, assignments, _dirty: true };
+    }
+
+    case 'IMPORT_PROPOSED': {
+      const merged = mergeProposed(
+        state.assignments || [],
+        action.assignments
+      );
+      const weeks = mergeWeeks(state.weeks || [], action.weeks || []);
+      return { ...state, assignments: merged, weeks, _dirty: true };
+    }
+
+    case 'CONFIRM_ASSIGNMENT': {
+      const assignments = (state.assignments || []).map((a) =>
+        a.id === action.id ? { ...a, review_status: 'confirmed' } : a
+      );
+      return { ...state, assignments, _dirty: true };
+    }
+
+    case 'REJECT_ASSIGNMENT': {
+      const assignments = (state.assignments || []).filter((a) => a.id !== action.id);
+      const cleaned = assignments.map((a) => ({
+        ...a,
+        requires: (a.requires || []).filter((r) => r !== action.id),
+      }));
+      return { ...state, assignments: cleaned, _dirty: true };
+    }
+
+    case 'SET_REVIEW_STATUS': {
+      const assignments = (state.assignments || []).map((a) =>
+        a.id === action.id ? { ...a, review_status: action.status } : a
+      );
       return { ...state, assignments, _dirty: true };
     }
 
@@ -109,6 +155,16 @@ export function CourseDataProvider({ children }) {
       dispatch({ type: 'DELETE_ASSIGNMENT', id }),
     duplicateAssignment: (id) =>
       dispatch({ type: 'DUPLICATE_ASSIGNMENT', id }),
+
+    // Import actions
+    importProposed: (assignments, weeks) =>
+      dispatch({ type: 'IMPORT_PROPOSED', assignments, weeks }),
+    confirmAssignment: (id) =>
+      dispatch({ type: 'CONFIRM_ASSIGNMENT', id }),
+    rejectAssignment: (id) =>
+      dispatch({ type: 'REJECT_ASSIGNMENT', id }),
+    setReviewStatus: (id, status) =>
+      dispatch({ type: 'SET_REVIEW_STATUS', id, status }),
 
     // Export
     exportYaml: () => {
