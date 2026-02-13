@@ -1,5 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
-
 const SYSTEM_PROMPT = `You are analyzing a university course page to extract structured data for a course design tool.
 
 ## Knowledge Layer Spectrum
@@ -150,8 +148,6 @@ async function handleAnalyzePage(
     };
   }
 
-  const client = new Anthropic({ apiKey });
-
   const userMessage = buildUserMessage(
     page_type,
     sprint_number,
@@ -160,12 +156,31 @@ async function handleAnalyzePage(
     existing_data
   );
 
-  const response = await client.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 4096,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: 'user', content: userMessage }],
+  const apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5-20250929',
+      max_tokens: 4096,
+      system: SYSTEM_PROMPT,
+      messages: [{ role: 'user', content: userMessage }],
+    }),
   });
+
+  if (!apiResponse.ok) {
+    const errBody = await apiResponse.text();
+    return {
+      statusCode: apiResponse.status,
+      headers,
+      body: JSON.stringify({ error: `Claude API error: ${errBody}` }),
+    };
+  }
+
+  const response = await apiResponse.json();
 
   const text = response.content
     .filter((b) => b.type === 'text')
