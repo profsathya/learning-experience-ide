@@ -1,366 +1,391 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useCourseData } from '../../hooks/useCourseData';
-import { useGraphPhysics } from '../../hooks/useGraphPhysics';
 import { getTypeStyle } from '../tags/TypeBadge';
+import { getReviewStatus } from '../ReviewStatusBadge';
 
-export default function MentalModelView({ onSelect, selected, showPathways, showDeps, highlightWeek }) {
-  const { data, getLayer, getPathway } = useCourseData();
+// Layer column order (left → right)
+const LAYER_ORDER = ['philosophy', 'psychology', 'design', 'engineering', 'business'];
+const LAYER_POSITIONS = {
+  philosophy:  { start: 0,  center: 10 },
+  psychology:  { start: 20, center: 30 },
+  design:      { start: 40, center: 50 },
+  engineering: { start: 60, center: 70 },
+  business:    { start: 80, center: 90 },
+};
+const COL_WIDTH = 20; // each column is 20%
+
+export default function MentalModelView({ onSelect, selected, filters }) {
+  const { data, getLayer } = useCourseData();
   const layers = data.layers || [];
   const assignments = data.assignments || [];
-  const pathways = data.pathways || [];
-
-  const canvasRef = useRef(null);
-  const animRef = useRef(null);
-  const dragRef = useRef(null);
+  const weeks = data.weeks || [];
+  const containerRef = useRef(null);
   const [hovered, setHovered] = useState(null);
-  const [dims, setDims] = useState({ w: 800, h: 530 });
 
-  // Measure container on mount
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const p = canvas.parentElement;
-    if (p) setDims({ w: Math.max(580, p.clientWidth - 4), h: 530 });
-  }, []);
-
-  const { nodesRef, zones, tick, getNodeAt } = useGraphPhysics({
-    assignments,
-    layers,
-    dims,
-  });
-
-  // Main render loop
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || assignments.length === 0) return;
-    const ctx = canvas.getContext('2d');
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = dims.w * dpr;
-    canvas.height = dims.h * dpr;
-    canvas.style.width = dims.w + 'px';
-    canvas.style.height = dims.h + 'px';
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    let running = true;
-    const nodes = nodesRef.current;
-
-    function frame() {
-      if (!running) return;
-
-      tick(dragRef.current?.id);
-      ctx.clearRect(0, 0, dims.w, dims.h);
-
-      // Zone backgrounds
-      zones.forEach((z) => {
-        const hasAssignments = assignments.some(
-          (a) => a.primary_layer === z.id || a.boundary_layer === z.id || (!a.primary_layer && !a.boundary_layer)
-        );
-        ctx.fillStyle = z.color + '06';
-        ctx.beginPath();
-        ctx.roundRect(z.x, z.y, z.w, z.h, 6);
-        ctx.fill();
-        ctx.strokeStyle = z.color + '15';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.roundRect(z.x, z.y, z.w, z.h, 6);
-        ctx.stroke();
-        ctx.fillStyle = z.color + (hasAssignments ? 'bb' : '50');
-        ctx.font = 'bold 10.5px system-ui';
-        ctx.textAlign = 'center';
-        ctx.fillText(z.name, z.cx, z.y + 16);
-        ctx.font = 'italic 8px system-ui';
-        ctx.fillStyle = z.color + '60';
-        ctx.fillText(z.question, z.cx, z.y + 28);
-        if (!hasAssignments) {
-          ctx.fillStyle = z.color + '25';
-          ctx.font = 'italic 9px system-ui';
-          ctx.fillText('(no assignments)', z.cx, z.y + z.h / 2);
-        }
-      });
-
-      // Week guides
-      for (let w = 1; w <= 4; w++) {
-        const y = 80 + ((w - 1) / 3) * (dims.h - 180);
-        const hi = highlightWeek === w;
-        ctx.fillStyle = hi ? '#14b8a6' : '#cbd5e1';
-        ctx.font = `${hi ? 'bold' : 'normal'} 8.5px system-ui`;
-        ctx.textAlign = 'left';
-        ctx.fillText(`W${w}`, 5, y + 3);
-        ctx.strokeStyle = hi ? '#14b8a618' : '#0000';
-        ctx.setLineDash([2, 8]);
-        ctx.beginPath();
-        ctx.moveTo(22, y);
-        ctx.lineTo(dims.w - 8, y);
-        ctx.stroke();
-        ctx.setLineDash([]);
+  // Apply filters
+  const filtered = useMemo(() => {
+    if (!filters) return assignments;
+    return assignments.filter((a) => {
+      if (filters.pathway && filters.pathway !== 'all') {
+        if (!(a.pathways || []).includes(filters.pathway)) return false;
       }
-
-      // Dependency edges
-      if (showDeps) {
-        assignments.forEach((a) =>
-          (a.requires || []).forEach((rid) => {
-            const from = nodes.find((n) => n.id === rid);
-            const to = nodes.find((n) => n.id === a.id);
-            if (!from || !to) return;
-            const isHi = hovered && (from.id === hovered || to.id === hovered);
-            const isSel = selected && (from.id === selected || to.id === selected);
-            const active = isHi || isSel;
-            const mx = (from.x + to.x) / 2;
-            const my = (from.y + to.y) / 2 - 12;
-            ctx.beginPath();
-            ctx.moveTo(from.x, from.y);
-            ctx.quadraticCurveTo(mx, my, to.x, to.y);
-            ctx.strokeStyle = active ? '#475569aa' : '#94a3b825';
-            ctx.lineWidth = active ? 2 : 1;
-            ctx.setLineDash([4, 3]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            const angle = Math.atan2(to.y - my, to.x - mx);
-            const ax = to.x - Math.cos(angle) * 21;
-            const ay = to.y - Math.sin(angle) * 21;
-            ctx.beginPath();
-            ctx.moveTo(ax, ay);
-            ctx.lineTo(ax - Math.cos(angle - 0.35) * 7, ay - Math.sin(angle - 0.35) * 7);
-            ctx.lineTo(ax - Math.cos(angle + 0.35) * 7, ay - Math.sin(angle + 0.35) * 7);
-            ctx.closePath();
-            ctx.fillStyle = active ? '#475569aa' : '#94a3b825';
-            ctx.fill();
-          })
-        );
+      if (filters.type && filters.type !== 'all') {
+        if (a.type !== filters.type) return false;
       }
-
-      // Pathway threads
-      if (showPathways) {
-        pathways.forEach((pw) => {
-          const tagged = assignments
-            .filter((a) => (a.pathways || []).includes(pw.id))
-            .sort((a, b) => a.week - b.week);
-          for (let i = 0; i < tagged.length - 1; i++) {
-            const n1 = nodes.find((n) => n.id === tagged[i].id);
-            const n2 = nodes.find((n) => n.id === tagged[i + 1].id);
-            if (!n1 || !n2) continue;
-            const active =
-              (hovered && (n1.id === hovered || n2.id === hovered)) ||
-              (selected && (n1.id === selected || n2.id === selected));
-            ctx.beginPath();
-            ctx.moveTo(n1.x, n1.y);
-            ctx.lineTo(n2.x, n2.y);
-            ctx.strokeStyle = active ? pw.color + '99' : pw.color + '18';
-            ctx.lineWidth = active ? 2.5 : 1;
-            ctx.stroke();
-          }
-        });
+      if (filters.status && filters.status !== 'all') {
+        if (getReviewStatus(a) !== filters.status) return false;
       }
+      return true;
+    });
+  }, [assignments, filters]);
 
-      // Boundary reach lines
-      nodes.forEach((n) => {
-        const a = n.data;
-        if (!a.boundary_layer || !a.primary_layer) return;
-        const bz = zones.find((z) => z.id === a.boundary_layer);
-        if (!bz) return;
-        if (n.x >= bz.x && n.x <= bz.x + bz.w) return;
-        const active = hovered === n.id || selected === n.id;
-        const edgeX = n.x < bz.cx ? bz.x + bz.w : bz.x;
-        ctx.beginPath();
-        ctx.moveTo(n.x, n.y);
-        ctx.lineTo(edgeX, n.y);
-        ctx.strokeStyle = bz.color + (active ? '50' : '12');
-        ctx.lineWidth = active ? 1.5 : 0.7;
-        ctx.setLineDash([2, 3]);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.arc(edgeX, n.y, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = bz.color + (active ? '60' : '20');
-        ctx.fill();
-      });
+  // Group by week, sort by dependency order within each week
+  const weekGroups = useMemo(() => {
+    const weekNums = [...new Set(filtered.map((a) => a.week))].sort((a, b) => a - b);
+    return weekNums.map((wNum) => {
+      const weekData = weeks.find((w) => w.number === wNum);
+      const weekAssignments = filtered.filter((a) => a.week === wNum);
+      // Topological sort by requires (dependencies first)
+      const sorted = topoSort(weekAssignments, assignments);
+      return { number: wNum, title: weekData?.title || `Week ${wNum}`, assignments: sorted };
+    });
+  }, [filtered, weeks, assignments]);
 
-      // Nodes
-      nodes.forEach((n) => {
-        const a = n.data;
-        const isH = n.id === hovered;
-        const isS = n.id === selected;
-        const conn =
-          hovered &&
-          ((a.requires || []).includes(hovered) ||
-            assignments.find((x) => x.id === hovered)?.requires?.includes(n.id));
-        const dim =
-          (hovered && !isH && !conn) || (highlightWeek && a.week !== highlightWeek);
-        const st = getTypeStyle(a.type);
-
-        ctx.save();
-        if (dim) ctx.globalAlpha = 0.18;
-        if (isH || isS) {
-          ctx.shadowColor = st.text + '25';
-          ctx.shadowBlur = 14;
-        }
-
-        if (a.primary_layer && (isH || isS)) {
-          const pl = getLayer(a.primary_layer);
-          if (pl) {
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, n.radius + 4, 0, Math.PI * 2);
-            ctx.strokeStyle = pl.color + '35';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-          }
-        }
-
-        ctx.beginPath();
-        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
-        ctx.fillStyle = isH || isS ? '#fff' : st.bg;
-        ctx.fill();
-        ctx.strokeStyle = isH || isS ? st.text : st.border;
-        ctx.lineWidth = isH || isS ? 2.5 : 1.5;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-
-        ctx.fillStyle = st.text;
-        ctx.font = 'bold 8.5px system-ui';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(a.primary_layer ? `W${a.week}` : '\u2605', n.x, n.y - 3);
-        ctx.font = '600 6px system-ui';
-        ctx.fillStyle = st.text + '88';
-        ctx.fillText(st.label.toUpperCase(), n.x, n.y + 7);
-
-        const label = a.name.length > 18 ? a.name.slice(0, 16) + '\u2026' : a.name;
-        ctx.fillStyle = isH || isS ? '#0f172a' : '#94a3b8';
-        ctx.font = `${isH || isS ? '600' : 'normal'} 8px system-ui`;
-        ctx.textBaseline = 'top';
-        ctx.fillText(label, n.x, n.y + n.radius + 3);
-
-        if (isH || isS) {
-          (a.pathways || []).forEach((pid, pi) => {
-            const pw = getPathway(pid);
-            if (!pw) return;
-            const bx = n.x + (pi - ((a.pathways || []).length - 1) / 2) * 16;
-            const by = n.y - n.radius - 11;
-            ctx.beginPath();
-            ctx.arc(bx, by, 6, 0, Math.PI * 2);
-            ctx.fillStyle = pw.color + '25';
-            ctx.fill();
-            ctx.strokeStyle = pw.color + '50';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-            ctx.fillStyle = pw.color;
-            ctx.font = 'bold 5px system-ui';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(pw.abbr, bx, by);
-          });
-        }
-
-        ctx.restore();
-      });
-
-      // Tooltip
-      if (hovered) {
-        const node = nodes.find((n) => n.id === hovered);
-        if (node) {
-          const a = node.data;
-          const pl = a.primary_layer ? getLayer(a.primary_layer) : null;
-          const bl = a.boundary_layer ? getLayer(a.boundary_layer) : null;
-          const lines = [
-            a.name,
-            `${getTypeStyle(a.type).label} \u00b7 Week ${a.week} \u00b7 ${a.due}`,
-            a.primary_layer ? `${pl?.name}${bl ? ' \u2192 ' + bl?.name : ''}` : 'Full spectrum',
-          ];
-          ctx.font = '10.5px system-ui';
-          const maxW = Math.max(...lines.map((l) => ctx.measureText(l).width));
-          const tw = maxW + 20;
-          const th = lines.length * 15 + 10;
-          const tx = Math.max(4, Math.min(node.x - tw / 2, dims.w - tw - 4));
-          const ty = Math.max(4, node.y - node.radius - th - 16);
-          ctx.fillStyle = '#0f172aee';
-          ctx.beginPath();
-          ctx.roundRect(tx, ty, tw, th, 5);
-          ctx.fill();
-          lines.forEach((line, i) => {
-            ctx.fillStyle = i === 0 ? '#fff' : '#94a3b8';
-            ctx.font = i === 0 ? 'bold 10.5px system-ui' : '9.5px system-ui';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'top';
-            ctx.fillText(line, tx + 10, ty + 5 + i * 15);
-          });
-        }
+  // Get bar position as percentages
+  const getBarStyle = useCallback(
+    (a) => {
+      // Demos span full width
+      if (!a.primary_layer && !a.boundary_layer) {
+        return { left: '0%', width: '100%' };
       }
-
-      animRef.current = requestAnimationFrame(frame);
-    }
-
-    frame();
-    return () => {
-      running = false;
-      cancelAnimationFrame(animRef.current);
-    };
-  }, [dims, hovered, selected, showPathways, showDeps, highlightWeek, zones, assignments, pathways, nodesRef, tick, getLayer, getPathway]);
-
-  // Mouse handlers
-  const getNodeAtEvent = useCallback(
-    (e) => {
-      const rect = canvasRef.current.getBoundingClientRect();
-      return getNodeAt(e.clientX - rect.left, e.clientY - rect.top);
+      const pIdx = LAYER_ORDER.indexOf(a.primary_layer);
+      const bIdx = a.boundary_layer ? LAYER_ORDER.indexOf(a.boundary_layer) : pIdx;
+      const minIdx = Math.min(pIdx, bIdx);
+      const maxIdx = Math.max(pIdx, bIdx);
+      const left = minIdx * COL_WIDTH;
+      const width = (maxIdx - minIdx + 1) * COL_WIDTH;
+      return { left: `${left}%`, width: `${width}%` };
     },
-    [getNodeAt]
+    []
   );
 
-  const handleMouseMove = useCallback(
-    (e) => {
-      if (dragRef.current) {
-        const rect = canvasRef.current.getBoundingClientRect();
-        const node = nodesRef.current.find((n) => n.id === dragRef.current.id);
-        if (node) {
-          node.x = e.clientX - rect.left;
-          node.y = e.clientY - rect.top;
-          node.vx = 0;
-          node.vy = 0;
-        }
-        return;
+  // Dependency arrow data for hovered/selected assignment
+  const depArrows = useMemo(() => {
+    const target = hovered || selected;
+    if (!target) return [];
+    const a = assignments.find((x) => x.id === target);
+    if (!a) return [];
+    const arrows = [];
+    // Incoming: things this assignment requires
+    (a.requires || []).forEach((rid) => {
+      const req = assignments.find((x) => x.id === rid);
+      if (req) arrows.push({ from: rid, to: target, type: 'requires' });
+    });
+    // Outgoing: things that require this assignment
+    assignments.forEach((other) => {
+      if ((other.requires || []).includes(target)) {
+        arrows.push({ from: target, to: other.id, type: 'enables' });
       }
-      const n = getNodeAtEvent(e);
-      setHovered(n?.id || null);
-      canvasRef.current.style.cursor = n ? 'grab' : 'default';
-    },
-    [getNodeAtEvent, nodesRef]
-  );
-
-  const handleMouseDown = useCallback(
-    (e) => {
-      const n = getNodeAtEvent(e);
-      if (n) {
-        dragRef.current = { id: n.id };
-        canvasRef.current.style.cursor = 'grabbing';
-      }
-    },
-    [getNodeAtEvent]
-  );
-
-  const handleMouseUp = useCallback(() => {
-    if (dragRef.current) {
-      canvasRef.current.style.cursor = 'grab';
-      dragRef.current = null;
-    }
-  }, []);
-
-  const handleClick = useCallback(
-    (e) => {
-      if (dragRef.current) return;
-      const n = getNodeAtEvent(e);
-      if (n) onSelect(n.id === selected ? null : n.id);
-    },
-    [getNodeAtEvent, onSelect, selected]
-  );
+    });
+    return arrows;
+  }, [hovered, selected, assignments]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      onMouseMove={handleMouseMove}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={() => { setHovered(null); dragRef.current = null; }}
-      onClick={handleClick}
-      className="rounded-lg block w-full"
-      style={{ border: '1px solid #e2e8f0', backgroundColor: '#fcfcfd' }}
-    />
+    <div ref={containerRef} className="relative">
+      {/* Column headers */}
+      <SpectrumHeader layers={layers} />
+
+      {/* Week groups */}
+      <div className="mt-1">
+        {weekGroups.length === 0 && (
+          <div className="text-center text-slate-400 text-sm py-12">
+            No assignments match the current filters.
+          </div>
+        )}
+        {weekGroups.map((wg) => (
+          <WeekGroup key={wg.number} week={wg}>
+            {wg.assignments.map((a) => (
+              <SpectrumBar
+                key={a.id}
+                assignment={a}
+                style={getBarStyle(a)}
+                isSelected={a.id === selected}
+                isHovered={a.id === hovered}
+                isDimmed={
+                  (hovered && a.id !== hovered && !depArrows.some((d) => d.from === a.id || d.to === a.id)) ||
+                  false
+                }
+                isDepTarget={depArrows.some((d) => d.from === a.id || d.to === a.id)}
+                onHover={setHovered}
+                onClick={() => onSelect(a.id === selected ? null : a.id)}
+                getLayer={getLayer}
+              />
+            ))}
+          </WeekGroup>
+        ))}
+      </div>
+
+      {/* SVG dependency arrows overlay */}
+      {depArrows.length > 0 && (
+        <DependencyArrows
+          arrows={depArrows}
+          assignments={assignments}
+          containerRef={containerRef}
+          getBarStyle={getBarStyle}
+        />
+      )}
+    </div>
   );
+}
+
+/* ── Column Headers ─────────────────────────────────────── */
+function SpectrumHeader({ layers }) {
+  return (
+    <div className="flex border-b border-slate-200 pb-2 mb-1">
+      {LAYER_ORDER.map((lid) => {
+        const layer = layers.find((l) => l.id === lid);
+        if (!layer) return null;
+        return (
+          <div key={lid} className="text-center" style={{ width: `${COL_WIDTH}%` }}>
+            <div className="text-[0.72rem] font-bold" style={{ color: layer.color }}>
+              {layer.name}
+            </div>
+            <div className="text-[0.58rem] text-slate-400 italic leading-tight mt-[1px]">
+              {layer.question}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ── Week Group ─────────────────────────────────────────── */
+function WeekGroup({ week, children }) {
+  return (
+    <div className="mb-3">
+      <div className="flex items-center gap-2 mb-1.5 px-1">
+        <span
+          className="text-[0.66rem] font-bold px-2 py-[2px] rounded-full"
+          style={{ backgroundColor: '#14b8a618', color: '#0f766e' }}
+        >
+          W{week.number}
+        </span>
+        <span className="text-[0.68rem] text-slate-500 font-medium">{week.title}</span>
+        <div className="flex-1 h-px bg-slate-100" />
+      </div>
+      <div className="relative space-y-[5px] pl-1 pr-1">{children}</div>
+    </div>
+  );
+}
+
+/* ── Spectrum Bar ───────────────────────────────────────── */
+function SpectrumBar({ assignment, style, isSelected, isHovered, isDimmed, isDepTarget, onHover, onClick, getLayer }) {
+  const a = assignment;
+  const ts = getTypeStyle(a.type);
+  const reviewStatus = getReviewStatus(a);
+  const isDemo = !a.primary_layer && !a.boundary_layer;
+  const primaryLayer = a.primary_layer ? getLayer(a.primary_layer) : null;
+  const active = isSelected || isHovered;
+
+  return (
+    <div
+      className="relative"
+      style={{ height: 34 }}
+      onMouseEnter={() => onHover(a.id)}
+      onMouseLeave={() => onHover(null)}
+      onClick={onClick}
+      data-assignment-id={a.id}
+    >
+      {/* Bar */}
+      <div
+        className="absolute top-0 rounded-md cursor-pointer flex items-center gap-1.5 px-2.5 transition-all duration-150"
+        style={{
+          ...style,
+          height: '100%',
+          backgroundColor: active ? ts.bg : (ts.bg + 'cc'),
+          border: `1.5px ${reviewStatus === 'proposed' ? 'dashed' : 'solid'} ${active ? ts.text + '60' : ts.border}`,
+          opacity: isDimmed ? 0.2 : (reviewStatus === 'proposed' ? 0.75 : 1),
+          boxShadow: active ? `0 2px 8px ${ts.text}18` : 'none',
+          zIndex: active ? 10 : 1,
+        }}
+      >
+        {/* Primary layer dot */}
+        {primaryLayer && (
+          <span
+            className="w-[7px] h-[7px] rounded-full flex-shrink-0"
+            style={{ backgroundColor: primaryLayer.color }}
+          />
+        )}
+        {isDemo && (
+          <span className="text-[0.65rem]" style={{ color: ts.text }}>★</span>
+        )}
+
+        {/* Name */}
+        <span
+          className="text-[0.7rem] font-semibold truncate"
+          style={{
+            color: ts.text,
+            fontStyle: reviewStatus === 'proposed' ? 'italic' : 'normal',
+          }}
+        >
+          {a.name}
+        </span>
+
+        {/* Type label */}
+        <span
+          className="text-[0.56rem] uppercase font-bold tracking-wider flex-shrink-0 opacity-60"
+          style={{ color: ts.text }}
+        >
+          {ts.label}
+        </span>
+
+        {/* Review status indicator */}
+        {reviewStatus === 'proposed' && (
+          <span className="text-[0.5rem] flex-shrink-0">🟡</span>
+        )}
+        {reviewStatus === 'needs_review' && (
+          <span className="text-[0.5rem] flex-shrink-0">⚠️</span>
+        )}
+
+        {/* Due date */}
+        <span className="text-[0.56rem] text-slate-400 flex-shrink-0 ml-auto">{a.due}</span>
+      </div>
+
+      {/* Tooltip on hover */}
+      {isHovered && (
+        <BarTooltip assignment={a} barStyle={style} getLayer={getLayer} />
+      )}
+    </div>
+  );
+}
+
+/* ── Tooltip ────────────────────────────────────────────── */
+function BarTooltip({ assignment, barStyle, getLayer }) {
+  const a = assignment;
+  const ts = getTypeStyle(a.type);
+  const pl = a.primary_layer ? getLayer(a.primary_layer) : null;
+  const bl = a.boundary_layer ? getLayer(a.boundary_layer) : null;
+  const layerText = pl ? `${pl.name}${bl ? ' → ' + bl.name : ''}` : 'Full spectrum';
+
+  // Position tooltip above the bar, aligned to bar's left edge
+  const leftPct = parseFloat(barStyle.left) || 0;
+
+  return (
+    <div
+      className="absolute z-50 pointer-events-none"
+      style={{
+        bottom: '100%',
+        left: `${Math.max(5, Math.min(leftPct, 65))}%`,
+        marginBottom: 6,
+      }}
+    >
+      <div
+        className="rounded-lg px-3 py-2 shadow-lg text-left whitespace-nowrap"
+        style={{ backgroundColor: '#0f172aee', minWidth: 180 }}
+      >
+        <div className="text-white text-[0.72rem] font-bold">{a.name}</div>
+        <div className="text-slate-400 text-[0.62rem] mt-[2px]">
+          {ts.label} · Week {a.week} · {a.due} · {a.time}
+        </div>
+        <div className="text-slate-400 text-[0.62rem] mt-[1px]">{layerText}</div>
+        {(a.pathways || []).length > 0 && (
+          <div className="text-slate-500 text-[0.56rem] mt-[2px]">
+            Pathways: {(a.pathways || []).join(', ')}
+          </div>
+        )}
+        {(a.requires || []).length > 0 && (
+          <div className="text-slate-500 text-[0.56rem] mt-[1px]">
+            Requires: {(a.requires || []).join(', ')}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── SVG Dependency Arrows ──────────────────────────────── */
+function DependencyArrows({ arrows, assignments, containerRef, getBarStyle }) {
+  const container = containerRef.current;
+  if (!container) return null;
+
+  const containerRect = container.getBoundingClientRect();
+
+  // Find DOM elements for each assignment bar
+  const getBarCenter = (id) => {
+    const el = container.querySelector(`[data-assignment-id="${id}"]`);
+    if (!el) return null;
+    const bar = el.querySelector('.absolute');
+    if (!bar) return null;
+    const rect = bar.getBoundingClientRect();
+    return {
+      x: rect.left + rect.width / 2 - containerRect.left,
+      y: rect.top + rect.height / 2 - containerRect.top,
+      top: rect.top - containerRect.top,
+      bottom: rect.bottom - containerRect.top,
+      left: rect.left - containerRect.left,
+      right: rect.right - containerRect.left,
+    };
+  };
+
+  return (
+    <svg
+      className="absolute inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: 20 }}
+    >
+      <defs>
+        <marker id="arrow-head" markerWidth="6" markerHeight="5" refX="5" refY="2.5" orient="auto">
+          <path d="M0,0 L6,2.5 L0,5 Z" fill="#475569" fillOpacity="0.6" />
+        </marker>
+      </defs>
+      {arrows.map((arrow, i) => {
+        const from = getBarCenter(arrow.from);
+        const to = getBarCenter(arrow.to);
+        if (!from || !to) return null;
+
+        // Curve the line: go from bottom of "from" to top of "to"
+        const x1 = from.x;
+        const y1 = from.bottom;
+        const x2 = to.x;
+        const y2 = to.top;
+        const midY = (y1 + y2) / 2;
+        const cpOffset = Math.min(Math.abs(x2 - x1) * 0.3, 40);
+
+        return (
+          <path
+            key={i}
+            d={`M${x1},${y1} C${x1},${midY - cpOffset} ${x2},${midY + cpOffset} ${x2},${y2}`}
+            fill="none"
+            stroke="#475569"
+            strokeOpacity="0.5"
+            strokeWidth="1.5"
+            strokeDasharray="4,3"
+            markerEnd="url(#arrow-head)"
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+/* ── Topological Sort ───────────────────────────────────── */
+function topoSort(weekAssignments, allAssignments) {
+  const ids = new Set(weekAssignments.map((a) => a.id));
+  const sorted = [];
+  const visited = new Set();
+
+  function visit(a) {
+    if (visited.has(a.id)) return;
+    visited.add(a.id);
+    (a.requires || []).forEach((rid) => {
+      if (ids.has(rid)) {
+        const req = weekAssignments.find((x) => x.id === rid);
+        if (req) visit(req);
+      }
+    });
+    sorted.push(a);
+  }
+
+  weekAssignments.forEach((a) => visit(a));
+  return sorted;
 }
