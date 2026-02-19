@@ -66,6 +66,9 @@ Return valid JSON matching this schema for each assignment found:
 Include analysis_notes explaining your reasoning for each layer assignment. The instructor will review these.`;
 
 export const handler = async (event) => {
+  const t0 = Date.now();
+  console.log(`[analyze-course] START ${event.httpMethod} at ${new Date().toISOString()}`);
+
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
@@ -84,13 +87,18 @@ export const handler = async (event) => {
   try {
     const body = JSON.parse(event.body);
     const { action } = body;
+    console.log(`[analyze-course] action=${action} bodySize=${event.body.length} chars`);
 
     if (action === 'fetch_page') {
-      return await handleFetchPage(body, headers);
+      const result = await handleFetchPage(body, headers);
+      console.log(`[analyze-course] fetch_page done in ${Date.now() - t0}ms status=${result.statusCode}`);
+      return result;
     }
 
     if (action === 'analyze_page') {
-      return await handleAnalyzePage(body, headers);
+      const result = await handleAnalyzePage(body, headers);
+      console.log(`[analyze-course] analyze_page done in ${Date.now() - t0}ms status=${result.statusCode}`);
+      return result;
     }
 
     return {
@@ -99,6 +107,7 @@ export const handler = async (event) => {
       body: JSON.stringify({ error: `Unknown action: ${action}` }),
     };
   } catch (err) {
+    console.error(`[analyze-course] UNCAUGHT ERROR after ${Date.now() - t0}ms:`, err.message);
     return {
       statusCode: 500,
       headers,
@@ -108,6 +117,9 @@ export const handler = async (event) => {
 };
 
 async function handleFetchPage({ url }, headers) {
+  console.log(`[fetch_page] Fetching: ${url}`);
+  const t0 = Date.now();
+
   // Validate URL is from expected domain
   const parsed = new URL(url);
   if (!parsed.hostname.endsWith('github.io')) {
@@ -119,6 +131,8 @@ async function handleFetchPage({ url }, headers) {
   }
 
   const response = await fetch(url);
+  console.log(`[fetch_page] HTTP ${response.status} in ${Date.now() - t0}ms`);
+
   if (!response.ok) {
     return {
       statusCode: response.status,
@@ -128,6 +142,7 @@ async function handleFetchPage({ url }, headers) {
   }
 
   const html = await response.text();
+  console.log(`[fetch_page] Got ${html.length} chars in ${Date.now() - t0}ms total`);
   return {
     statusCode: 200,
     headers,
@@ -139,14 +154,21 @@ async function handleAnalyzePage(
   { course_id, page_type, sprint_number, page_content, existing_data },
   headers
 ) {
+  const t0 = Date.now();
+  console.log(`[analyze_page] course=${course_id} type=${page_type} sprint=${sprint_number}`);
+  console.log(`[analyze_page] page_content length: ${(page_content || '').length} chars`);
+  console.log(`[analyze_page] existing_data items: ${existing_data ? existing_data.length : 0}`);
+
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    console.error('[analyze_page] ANTHROPIC_API_KEY is not set!');
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }),
     };
   }
+  console.log(`[analyze_page] API key present (${apiKey.slice(0, 10)}...)`);
 
   const userMessage = buildUserMessage(
     page_type,
@@ -155,24 +177,44 @@ async function handleAnalyzePage(
     course_id,
     existing_data
   );
+  console.log(`[analyze_page] User message length: ${userMessage.length} chars`);
 
-  const apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 4096,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: 'user', content: userMessage }],
-    }),
-  });
+  console.log(`[analyze_page] Calling Claude API...`);
+  const apiT0 = Date.now();
+
+  const requestBody = {
+    model: 'claude-sonnet-4-5-20250929',
+    max_tokens: 4096,
+    system: SYSTEM_PROMPT,
+    messages: [{ role: 'user', content: userMessage }],
+  };
+  console.log(`[analyze_page] Request body size: ${JSON.stringify(requestBody).length} chars`);
+
+  let apiResponse;
+  try {
+    apiResponse = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+  } catch (fetchErr) {
+    console.error(`[analyze_page] Fetch to Claude API FAILED after ${Date.now() - apiT0}ms:`, fetchErr.message);
+    return {
+      statusCode: 502,
+      headers,
+      body: JSON.stringify({ error: `Failed to reach Claude API: ${fetchErr.message}` }),
+    };
+  }
+
+  console.log(`[analyze_page] Claude API responded: HTTP ${apiResponse.status} in ${Date.now() - apiT0}ms`);
 
   if (!apiResponse.ok) {
     const errBody = await apiResponse.text();
+    console.error(`[analyze_page] Claude API error: ${errBody.slice(0, 500)}`);
     return {
       statusCode: apiResponse.status,
       headers,
@@ -181,11 +223,14 @@ async function handleAnalyzePage(
   }
 
   const response = await apiResponse.json();
+  console.log(`[analyze_page] Response parsed in ${Date.now() - apiT0}ms, usage: ${JSON.stringify(response.usage || {})}`);
 
   const text = response.content
     .filter((b) => b.type === 'text')
     .map((b) => b.text)
     .join('');
+
+  console.log(`[analyze_page] Response text length: ${text.length} chars`);
 
   // Parse JSON from response (handle markdown code fences)
   const jsonStr = text.replace(/```json\n?|```\n?/g, '').trim();
@@ -194,6 +239,7 @@ async function handleAnalyzePage(
   try {
     analysis = JSON.parse(jsonStr);
   } catch (parseErr) {
+    console.error(`[analyze_page] JSON parse failed. First 200 chars: ${jsonStr.slice(0, 200)}`);
     return {
       statusCode: 422,
       headers,
@@ -203,6 +249,8 @@ async function handleAnalyzePage(
       }),
     };
   }
+
+  console.log(`[analyze_page] SUCCESS: ${(analysis.assignments || []).length} assignments, ${(analysis.weeks || []).length} weeks. Total: ${Date.now() - t0}ms`);
 
   return {
     statusCode: 200,
