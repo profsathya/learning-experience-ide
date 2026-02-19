@@ -7,6 +7,7 @@
   command = "npm run dev"
   port = 8888
   targetPort = 5173
+  functionsTimeout = 60
 
 [[redirects]]
   from = "/api/*"
@@ -15,9 +16,6 @@
 
 [functions]
   timeout = 60
-
-[dev]
-  functionsTimeout = 60
 
 [build.environment]
   NODE_VERSION = "20"
