@@ -364,8 +364,9 @@ function Step2ReviewPages({
             onClick={onAnalyzeAll}
             className="px-3 py-1.5 rounded-lg border-none cursor-pointer text-[0.76rem] font-bold"
             style={{ backgroundColor: '#14b8a6', color: '#fff' }}
+            title="Analyzes each page one at a time sequentially"
           >
-            Analyze All with Claude
+            Analyze All (one by one)
           </button>
         </div>
       </div>

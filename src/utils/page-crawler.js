@@ -137,8 +137,21 @@ export async function crawlCourse(baseUrl, courseId, { onPageDone } = {}) {
 
 /**
  * Send extracted page content to Claude for analysis via the Netlify Function.
+ * Content is trimmed to avoid timeouts on large pages.
  */
 export async function analyzePage({ courseId, pageType, sprintNumber, pageContent, existingData }) {
+  // Trim page content to ~8000 chars to keep API call fast
+  const trimmedContent = pageContent.length > 8000
+    ? pageContent.slice(0, 8000) + '\n\n[Content truncated for analysis]'
+    : pageContent;
+
+  // Only send minimal fields from existing data for dependency context
+  const minimalExisting = existingData
+    ? existingData.map(({ id, name, type, week, primary_layer, boundary_layer }) => ({
+        id, name, type, week, primary_layer, boundary_layer,
+      }))
+    : undefined;
+
   const res = await fetch(API_BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -147,8 +160,8 @@ export async function analyzePage({ courseId, pageType, sprintNumber, pageConten
       course_id: courseId,
       page_type: pageType,
       sprint_number: sprintNumber,
-      page_content: pageContent,
-      existing_data: existingData,
+      page_content: trimmedContent,
+      existing_data: minimalExisting,
     }),
   });
 
