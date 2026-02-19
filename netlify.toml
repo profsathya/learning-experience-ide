@@ -13,5 +13,11 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
+[functions]
+  timeout = 60
+
+[dev]
+  functionsTimeout = 60
+
 [build.environment]
   NODE_VERSION = "20"
